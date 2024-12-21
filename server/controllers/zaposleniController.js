@@ -79,7 +79,7 @@ const ZaposleniController = {
   delete: async (req, res) => {
     try {
       const { jmbg } = req.params;
-      const deleted = await ZaposleniService.delete(jmbg);
+      await ZaposleniService.delete(jmbg);
 
       res.json({ message: "Zaposleni je uspešno obrisan." });
     } catch (error) {
