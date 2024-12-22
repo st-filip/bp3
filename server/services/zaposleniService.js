@@ -10,11 +10,6 @@ const ZaposleniService = {
   },
 
   getAll: async () => {
-    const result = await pool.query("SELECT * FROM zaposleni");
-    return result.rows;
-  },
-
-  getAllValid: async () => {
     const result = await pool.query(
       "SELECT * FROM zaposleni WHERE imeprezime NOT ILIKE 'Ime%'"
     );

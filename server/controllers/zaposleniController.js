@@ -18,7 +18,7 @@ const ZaposleniController = {
       res.json(newZaposleni);
     } catch (error) {
       console.error(error.message);
-      res.status(500).send("Server Error");
+      res.status(500).send(error.message);
     }
   },
 
@@ -28,17 +28,7 @@ const ZaposleniController = {
       res.json(zaposleni);
     } catch (error) {
       console.error(error.message);
-      res.status(500).send("Server Error");
-    }
-  },
-
-  getAllValid: async (req, res) => {
-    try {
-      const zaposleni = await ZaposleniService.getAllValid();
-      res.json(zaposleni);
-    } catch (error) {
-      console.error(error.message);
-      res.status(500).send("Server Error");
+      res.status(500).send(error.message);
     }
   },
 
@@ -54,7 +44,7 @@ const ZaposleniController = {
       res.json(zaposleni);
     } catch (error) {
       console.error(error.message);
-      res.status(500).send("Server Error");
+      res.status(500).send(error.message);
     }
   },
 
@@ -72,7 +62,7 @@ const ZaposleniController = {
       res.json({ message: "Zaposleni je uspešno ažuriran." });
     } catch (error) {
       console.error(error.message);
-      res.status(500).send("Server Error");
+      res.status(500).send(error.message);
     }
   },
 
@@ -84,7 +74,7 @@ const ZaposleniController = {
       res.json({ message: "Zaposleni je uspešno obrisan." });
     } catch (error) {
       console.error(error.message);
-      res.status(500).send("Server Error");
+      res.status(500).send(error.message);
     }
   },
 };

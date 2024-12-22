@@ -34,13 +34,83 @@ const RadniNalogService = {
   },
 
   getAll: async () => {
-    const result = await pool.query("SELECT * FROM radninalogpregled");
+    const result = await pool.query(
+      `SELECT 
+      rn.brojrn,
+      rn.datum,
+      rn.planiranakol,
+      rn.ostvarenakol,
+      rn.status,
+      rn.voda,
+      rn.vodenapara,
+      rn.elenergija,
+      rn.ukupnosati,
+      (SELECT ROW_TO_JSON(p_object)
+      FROM (
+        SELECT sifraproizvoda, naziv 
+        FROM proizvod 
+        WHERE sifraproizvoda = rn.sifraproizvoda
+      ) p_object) AS proizvod,
+      (SELECT ROW_TO_JSON(pg_object)
+      FROM (
+        SELECT sifrapogona, naziv AS naziv_pogona 
+        FROM proizvodnipogon 
+        WHERE sifrapogona = rn.sifrapogona
+      ) pg_object) AS proizvodnipogon,
+      (SELECT ROW_TO_JSON(tp_object)
+      FROM (
+        SELECT brojtp, naziv AS tp_naziv 
+        FROM tehnoloskipostupak 
+        WHERE brojtp = rn.brojtp
+      ) tp_object) AS tehnoloskipostupak,
+      (SELECT ROW_TO_JSON(ts_object)
+      FROM (
+        SELECT brojts, naziv AS ts_naziv
+        FROM tehnickaspecifikacija 
+        WHERE brojts = rn.brojts
+      ) ts_object) AS tehnickaspecifikacija
+    FROM radninalogpregled rn`
+    );
     return result.rows;
   },
 
   getById: async (brojrn) => {
     const result = await pool.query(
-      "SELECT * FROM radninalogpregled WHERE brojrn = $1",
+      `SELECT 
+      rn.brojrn,
+      rn.datum,
+      rn.planiranakol,
+      rn.ostvarenakol,
+      rn.status,
+      rn.voda,
+      rn.vodenapara,
+      rn.elenergija,
+      rn.ukupnosati,
+      (SELECT ROW_TO_JSON(p_object)
+      FROM (
+        SELECT sifraproizvoda, naziv 
+        FROM proizvod 
+        WHERE sifraproizvoda = rn.sifraproizvoda
+      ) p_object) AS proizvod,
+      (SELECT ROW_TO_JSON(pg_object)
+      FROM (
+        SELECT sifrapogona, naziv AS naziv_pogona 
+        FROM proizvodnipogon 
+        WHERE sifrapogona = rn.sifrapogona
+      ) pg_object) AS proizvodnipogon,
+      (SELECT ROW_TO_JSON(tp_object)
+      FROM (
+        SELECT brojtp, naziv AS tp_naziv 
+        FROM tehnoloskipostupak 
+        WHERE brojtp = rn.brojtp
+      ) tp_object) AS tehnoloskipostupak,
+      (SELECT ROW_TO_JSON(ts_object)
+      FROM (
+        SELECT brojts, naziv AS ts_naziv
+        FROM tehnickaspecifikacija 
+        WHERE brojts = rn.brojts
+      ) ts_object) AS tehnickaspecifikacija
+    FROM radninalogpregled rn WHERE brojrn = $1`,
       [brojrn]
     );
     return result.rows[0];

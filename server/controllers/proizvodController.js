@@ -14,7 +14,7 @@ const ProizvodController = {
       res.json(newProizvod);
     } catch (error) {
       console.error(error.message);
-      res.status(500).send("Server Error");
+      res.status(500).send(error.message);
     }
   },
 
@@ -24,17 +24,7 @@ const ProizvodController = {
       res.json(proizvodi);
     } catch (error) {
       console.error(error.message);
-      res.status(500).send("Server Error");
-    }
-  },
-
-  getAllValid: async (req, res) => {
-    try {
-      const proizvodi = await ProizvodService.getAllValid();
-      res.json(proizvodi);
-    } catch (error) {
-      console.error(error.message);
-      res.status(500).send("Server Error");
+      res.status(500).send(error.message);
     }
   },
 
@@ -50,7 +40,7 @@ const ProizvodController = {
       res.json(proizvod);
     } catch (error) {
       console.error(error.message);
-      res.status(500).send("Server Error");
+      res.status(500).send(error.message);
     }
   },
 
@@ -68,7 +58,7 @@ const ProizvodController = {
       res.json({ message: "Proizvod je uspešno ažuriran." });
     } catch (error) {
       console.error(error.message);
-      res.status(500).send("Server Error");
+      res.status(500).send(error.message);
     }
   },
 
@@ -80,7 +70,7 @@ const ProizvodController = {
       res.json({ message: "Proizvod je uspešno obrisan." });
     } catch (error) {
       console.error(error.message);
-      res.status(500).send("Server Error");
+      res.status(500).send(error.message);
     }
   },
 };

@@ -4,7 +4,6 @@ const ZaposleniController = require("../controllers/zaposleniController");
 
 router.post("/", ZaposleniController.create);
 router.get("/", ZaposleniController.getAll);
-router.get("/valid", ZaposleniController.getAllValid);
 router.get("/:jmbg", ZaposleniController.getById);
 router.put("/:jmbg", ZaposleniController.update);
 router.delete("/:jmbg", ZaposleniController.delete);

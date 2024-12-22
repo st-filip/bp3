@@ -10,20 +10,47 @@ const ProivodService = {
   },
 
   getAll: async () => {
-    const result = await pool.query("SELECT * FROM proizvod");
-    return result.rows;
-  },
-
-  getAllValid: async () => {
     const result = await pool.query(
-      "SELECT * FROM proizvod WHERE naziv NOT ILIKE 'Proizvod%'"
+      `SELECT 
+        p.sifraproizvoda, 
+        p.naziv,
+        (SELECT ROW_TO_JSON(jm_object) 
+        FROM (
+          SELECT sifrajm, naziv AS nazivjm 
+          FROM jedinicamere 
+          WHERE sifrajm = p.sifrajm
+        ) jm_object) AS jedinicamere,
+        (SELECT ROW_TO_JSON(tp_object) 
+        FROM (
+          SELECT sifratp, naziv AS nazivtp 
+          FROM tipproizvoda 
+          WHERE sifratp = p.sifratp
+        ) tp_object) AS tipproizvoda
+      FROM proizvod p
+      WHERE p.naziv NOT ILIKE 'Proizvod%'`
     );
     return result.rows;
   },
 
   getById: async (sifraproizvoda) => {
     const result = await pool.query(
-      "SELECT * FROM proizvod WHERE sifraproizvoda = $1",
+      `SELECT 
+        p.sifraproizvoda, 
+        p.naziv,
+        (SELECT ROW_TO_JSON(jm_object) 
+         FROM (
+           SELECT sifrajm, naziv AS nazivjm 
+           FROM jedinicamere 
+           WHERE sifrajm = p.sifrajm
+         ) jm_object) AS jedinicamere,
+        (SELECT ROW_TO_JSON(tp_object) 
+         FROM (
+           SELECT sifratp, naziv AS nazivtp 
+           FROM tipproizvoda 
+           WHERE sifratp = p.sifratp
+         ) tp_object) AS tipproizvoda
+      FROM proizvod p
+      WHERE sifraproizvoda = $1`,
       [sifraproizvoda]
     );
     return result.rows[0];
