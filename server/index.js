@@ -8,6 +8,9 @@ const jedinicaMereRoutes = require("./routes/jedinicaMereRoutes");
 const magacinRoutes = require("./routes/magacinRoutes");
 const proizvodniPogonRoutes = require("./routes/proizvodniPogonRoutes");
 const popisnaListaRoutes = require("./routes/popisnaListaRoutes");
+const tehnickaSpecifikacijaRoutes = require("./routes/tehnickaSpecifikacijaRoutes");
+const tehnoloskiPostupakRoutes = require("./routes/tehnoloskiPostupakRoutes");
+const dsAngazovanjeRoutes = require("./routes/dsAngazovanjeRoutes");
 
 const app = express();
 
@@ -24,6 +27,9 @@ app.use("/jedinica-mere", jedinicaMereRoutes);
 app.use("/magacin", magacinRoutes);
 app.use("/proizvodni-pogon", proizvodniPogonRoutes);
 app.use("/popisna-lista", popisnaListaRoutes);
+app.use("/tehnicka-specifikacija", tehnickaSpecifikacijaRoutes);
+app.use("/tehnoloski-postupak", tehnoloskiPostupakRoutes);
+app.use("/ds-angazovanje", dsAngazovanjeRoutes);
 
 // Default route
 app.get("/", (req, res) => {
