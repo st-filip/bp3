@@ -11,6 +11,9 @@ const popisnaListaRoutes = require("./routes/popisnaListaRoutes");
 const tehnickaSpecifikacijaRoutes = require("./routes/tehnickaSpecifikacijaRoutes");
 const tehnoloskiPostupakRoutes = require("./routes/tehnoloskiPostupakRoutes");
 const dsAngazovanjeRoutes = require("./routes/dsAngazovanjeRoutes");
+const tipRadnihSatiRoutes = require("./routes/tipRadnihSatiRoutes");
+const ulogaRoutes = require("./routes/ulogaRoutes");
+const stavkaPlRoutes = require("./routes/stavkaPlRoutes");
 
 const app = express();
 
@@ -30,6 +33,9 @@ app.use("/popisna-lista", popisnaListaRoutes);
 app.use("/tehnicka-specifikacija", tehnickaSpecifikacijaRoutes);
 app.use("/tehnoloski-postupak", tehnoloskiPostupakRoutes);
 app.use("/ds-angazovanje", dsAngazovanjeRoutes);
+app.use("/tip-radnih-sati", tipRadnihSatiRoutes);
+app.use("/uloga", ulogaRoutes);
+app.use("/stavka-pl", stavkaPlRoutes);
 
 // Default route
 app.get("/", (req, res) => {
