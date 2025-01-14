@@ -30,7 +30,7 @@ const RadniNalogController = {
         !brojtp ||
         !brojts
       ) {
-        return res.status(400).json({ message: "Sva polja su obavezna." });
+        return res.status(500).json({ message: "Sva polja su obavezna." });
       }
 
       const newRadniNalog = await RadniNalogService.create(
