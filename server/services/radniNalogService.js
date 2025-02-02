@@ -150,9 +150,27 @@ const RadniNalogService = {
   },
 
   delete: async (brojrn) => {
-    await pool.query("DELETE FROM radninalogpregled WHERE brojrn = $1", [
-      brojrn,
-    ]);
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+
+      // Prvo brisanje svih rnangazovanja vezanih za dati brojrn
+      await client.query("DELETE FROM rnangazovanje WHERE brojrn = $1", [
+        brojrn,
+      ]);
+
+      // Zatim brisanje iz radninalogpregled
+      await client.query("DELETE FROM radninalogpregled WHERE brojrn = $1", [
+        brojrn,
+      ]);
+
+      await client.query("COMMIT");
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
   },
 };
 

@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 
 const Button = ({ type = "button", text, onClick, variant = "basic" }) => {
   const baseStyles =
-    "w-full py-4 text-lg font-semibold  rounded-lg shadow-lg  focus:outline-none focus:ring-4 ";
+    "p-3 text-md font-semibold  rounded-lg shadow-lg  focus:outline-none focus:ring-4 ";
 
   const variantStyles = {
     basic: "bg-white text-blue-600 hover:bg-gray-100 focus:ring-blue-300",
@@ -28,7 +28,7 @@ const Button = ({ type = "button", text, onClick, variant = "basic" }) => {
 Button.propTypes = {
   type: PropTypes.string,
   text: PropTypes.string.isRequired,
-  onClick: PropTypes.func.isRequired,
+  onClick: PropTypes.func,
   variant: PropTypes.oneOf(["basic", "danger", "success", "warning", "info"]),
 };
 

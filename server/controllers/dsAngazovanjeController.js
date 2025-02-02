@@ -51,7 +51,6 @@ const DsAngazovanjeController = {
     }
   },
 
-  // DELETE: Delete a record from dsangazovanje
   delete: async (req, res) => {
     try {
       const { brojds, jmbg, sifrauloge } = req.params;
