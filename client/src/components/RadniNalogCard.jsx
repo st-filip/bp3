@@ -1,6 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import Button from "./Button";
+import { FaEdit, FaTrash } from "react-icons/fa";
 
 const RadniNalogCard = ({ radniNalog, onEdit, onDelete }) => {
   return (
@@ -15,11 +16,13 @@ const RadniNalogCard = ({ radniNalog, onEdit, onDelete }) => {
       <div className="flex flex-col gap-2 mt-4">
         <Button
           text="Izmeni"
+          icon={<FaEdit size={20} />}
           onClick={() => onEdit(radniNalog)}
           variant="info"
         />
         <Button
           text="Obriši"
+          icon={<FaTrash size={20} />}
           onClick={() => onDelete(radniNalog.brojrn)}
           variant="danger"
         />

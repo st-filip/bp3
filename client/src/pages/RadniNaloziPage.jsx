@@ -3,6 +3,7 @@ import RadniNalogCard from "../components/RadniNalogCard";
 import Button from "../components/Button";
 import Input from "../components/Input";
 import Select from "../components/Select";
+import { FaPlus, FaTimes, FaTrash, FaEdit } from "react-icons/fa";
 
 const RadniNaloziPage = () => {
   const [radniNalozi, setRadniNalozi] = useState([]);
@@ -401,12 +402,16 @@ const RadniNaloziPage = () => {
         <h1 className="text-2xl font-bold">Radni Nalozi</h1>
         {!isAdding ? (
           <Button
-            text="Dodaj novi radni nalog"
+            icon={<FaPlus size={20} />}
             onClick={() => setIsAdding(true)}
             variant="success"
           />
         ) : (
-          <Button text="Odustani" onClick={handleCancel} variant="danger" />
+          <Button
+            icon={<FaTimes size={20} />}
+            onClick={handleCancel}
+            variant="danger"
+          />
         )}
       </div>
 
@@ -534,7 +539,7 @@ const RadniNaloziPage = () => {
 
             <div className="mt-4">
               <Button
-                text={isEditing ? "Izmeni" : "Dodaj"}
+                icon={isEditing ? <FaEdit size={20} /> : <FaPlus size={20} />}
                 type="submit"
                 variant="success"
               />
@@ -591,7 +596,7 @@ const RadniNaloziPage = () => {
                 <div className="mt-4">
                   <Button
                     type="submit"
-                    text="Dodaj angažovanje"
+                    icon={<FaPlus size={20} />}
                     variant="success"
                   />
                 </div>
@@ -627,6 +632,7 @@ const RadniNaloziPage = () => {
                           <td className="px-4 py-3 text-right">
                             <Button
                               text="Obriši"
+                              icon={<FaTrash size={20} />}
                               onClick={() =>
                                 handleDeleteAngazovanje(
                                   angazovanje.uloga.sifrauloge,
@@ -634,6 +640,7 @@ const RadniNaloziPage = () => {
                                 )
                               }
                               variant="danger"
+                              className="ml-auto"
                             />
                           </td>
                         </tr>
