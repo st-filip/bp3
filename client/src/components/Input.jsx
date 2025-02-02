@@ -10,6 +10,7 @@ const Input = ({
   min,
   required = false,
   className = "",
+  placeholder, // Dodajte placeholder ovde
 }) => {
   return (
     <div>
@@ -24,6 +25,7 @@ const Input = ({
         min={min}
         required={required}
         className={`w-full p-2 border border-gray-300 rounded-md ${className}`}
+        placeholder={placeholder} // Prosledite placeholder ovde
       />
     </div>
   );
@@ -38,6 +40,7 @@ Input.propTypes = {
   min: PropTypes.number,
   required: PropTypes.bool,
   className: PropTypes.string,
+  placeholder: PropTypes.string, // Dodajte propTypes za placeholder
 };
 
 export default Input;

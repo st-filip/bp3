@@ -2,10 +2,11 @@ import React, { useState, useEffect } from "react";
 import Button from "../components/Button";
 import Input from "../components/Input";
 import Select from "../components/Select";
-import { FaPlus, FaTimes, FaTrash, FaEdit } from "react-icons/fa";
+import { FaPlus, FaTimes, FaTrash, FaEdit, FaSearch } from "react-icons/fa";
 
 const ZaposleniPage = () => {
   const [zaposleni, setZaposleni] = useState([]);
+  const [filteredZaposleni, setFilteredZaposleni] = useState([]);
   const [isAdding, setIsAdding] = useState(false);
   const [newZaposleni, setnewZaposleni] = useState({
     imeprezime: "",
@@ -15,6 +16,7 @@ const ZaposleniPage = () => {
   const [Tipovi, setTipovi] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editingZaposleniId, setEditingZaposleniId] = useState(null);
+  const [searchQuery, setSearchQuery] = useState(""); // Dodajemo stanje za pretragu
 
   const fetchZaposleni = async () => {
     try {
@@ -24,6 +26,7 @@ const ZaposleniPage = () => {
       }
       const data = await response.json();
       setZaposleni(data);
+      setFilteredZaposleni(data); // Početno filtriranje sa svim zaposlenima
     } catch (err) {
       console.error(err.message);
     }
@@ -141,23 +144,48 @@ const ZaposleniPage = () => {
     }));
   };
 
+  // Funkcija za pretragu
+  const handleSearch = () => {
+    const lowercasedQuery = searchQuery.toLowerCase();
+    const filtered = zaposleni.filter((zaposleni) =>
+      zaposleni.imeprezime.toLowerCase().includes(lowercasedQuery)
+    );
+    setFilteredZaposleni(filtered);
+  };
+
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold">Zaposleni</h1>
-        {!isAdding ? (
-          <Button
-            icon={<FaPlus size={20} />}
-            onClick={() => setIsAdding(true)}
-            variant="success"
+        <div className="flex items-center space-x-2">
+          {/* Polje za pretragu */}
+          <Input
+            name="imePrezimeSearch"
+            type="text"
+            placeholder="Ime i prezime"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
-        ) : (
           <Button
-            icon={<FaTimes size={20} />}
-            onClick={handleCancel}
-            variant="danger"
+            icon={<FaSearch size={20} />}
+            onClick={handleSearch}
+            variant="info"
           />
-        )}
+          {/* Dugme za dodavanje */}
+          {!isAdding ? (
+            <Button
+              icon={<FaPlus size={20} />}
+              onClick={() => setIsAdding(true)}
+              variant="success"
+            />
+          ) : (
+            <Button
+              icon={<FaTimes size={20} />}
+              onClick={handleCancel}
+              variant="danger"
+            />
+          )}
+        </div>
       </div>
 
       {isAdding && (
@@ -220,7 +248,7 @@ const ZaposleniPage = () => {
             </tr>
           </thead>
           <tbody>
-            {zaposleni.map((zaposleni, index) => (
+            {filteredZaposleni.map((zaposleni, index) => (
               <tr
                 key={zaposleni.jmbg}
                 className={`${
