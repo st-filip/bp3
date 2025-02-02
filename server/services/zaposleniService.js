@@ -33,6 +33,18 @@ const ZaposleniService = {
   delete: async (jmbg) => {
     await pool.query("DELETE FROM zaposleni WHERE jmbg = $1", [jmbg]);
   },
+
+  getTipoviZaposlenih: async () => {
+    const result = await pool.query(
+      `SELECT substring(pg_get_constraintdef(oid) from '\\{(.*)\\}')
+      FROM pg_constraint
+      WHERE conname = 'chk_nazivtipazaposlenog'
+      AND conrelid = 'zaposleni'::regclass;`
+    );
+
+    const tipovi = result.rows[0]?.substring?.split(",") || [];
+    return tipovi;
+  },
 };
 
 module.exports = ZaposleniService;
