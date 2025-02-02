@@ -73,7 +73,11 @@ const ZaposleniPage = () => {
             zaposleni.jmbg === editingZaposleniId ? newZaposleni : zaposleni
           )
         );
-
+        setFilteredZaposleni((prev) =>
+          prev.map((zaposleni) =>
+            zaposleni.jmbg === editingZaposleniId ? newZaposleni : zaposleni
+          )
+        );
         alert("Zaposleni je uspešno ažuriran.");
       } else {
         const response = await fetch("http://localhost:5000/zaposleni", {
@@ -86,6 +90,10 @@ const ZaposleniPage = () => {
         }
         const data = await response.json();
         setZaposleni((prev) => [...prev, data]);
+        const lowercasedQuery = searchQuery.toLowerCase();
+        if (data.imeprezime.toLowerCase().includes(lowercasedQuery)) {
+          setFilteredZaposleni((prev) => [...prev, data]);
+        }
         alert("Zaposleni je uspešno dodat.");
       }
     } catch (err) {
@@ -108,6 +116,9 @@ const ZaposleniPage = () => {
         throw new Error("Greška pri brisanju zaposlenog");
       }
       setZaposleni((prev) => prev.filter((zaposleni) => zaposleni.jmbg !== id));
+      setFilteredZaposleni((prev) =>
+        prev.filter((zaposleni) => zaposleni.jmbg !== id)
+      );
       alert("Zaposleni je uspešno obrisan.");
     } catch (err) {
       console.error(err.message);
