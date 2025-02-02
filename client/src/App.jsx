@@ -5,6 +5,8 @@ import RadniNaloziPage from "./pages/RadniNaloziPage";
 import DnevniciSmenaPage from "./pages/DnevniciSmenaPage";
 import PopisiMagacinaPage from "./pages/PopisiMagacinaPage";
 import MainLayout from "./components/MainLayout";
+import ZaposleniPage from "./pages/ZaposleniPage";
+import ProizvodiPage from "./pages/ProizvodiPage";
 
 function App() {
   return (
@@ -16,6 +18,8 @@ function App() {
           <Route path="/radni-nalozi" element={<RadniNaloziPage />} />
           <Route path="/dnevnici-smena" element={<DnevniciSmenaPage />} />
           <Route path="/popisi-magacina" element={<PopisiMagacinaPage />} />
+          <Route path="/zaposleni" element={<ZaposleniPage />} />
+          <Route path="/proizvodi" element={<ProizvodiPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
