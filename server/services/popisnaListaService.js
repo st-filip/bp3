@@ -11,8 +11,23 @@ const PopisnaListaService = {
 
   getAll: async () => {
     const result = await pool.query(
-      `SELECT 
-        pl.siframagacina, 
+      `SELECT
+        (SELECT ROW_TO_JSON(tp_object) 
+         FROM (
+           SELECT 
+             m.siframagacina, 
+             m.naziv AS nazivmagacina,
+             (SELECT ROW_TO_JSON(tp) 
+              FROM (
+                SELECT tp.sifratp, tp.naziv AS nazivtp
+                FROM tipproizvoda tp
+                WHERE tp.sifratp = m.sifratp
+              ) tp
+             ) AS tipproizvoda
+           FROM magacin m
+           WHERE m.siframagacina = pl.siframagacina
+         ) tp_object
+        ) AS magacin,
         pl.datum
       FROM popisnalista pl`
     );
@@ -21,8 +36,23 @@ const PopisnaListaService = {
 
   getById: async (siframagacina, datum) => {
     const result = await pool.query(
-      `SELECT 
-        pl.siframagacina, 
+      `SELECT
+        (SELECT ROW_TO_JSON(tp_object) 
+         FROM (
+           SELECT 
+             m.siframagacina, 
+             m.naziv AS nazivmagacina,
+             (SELECT ROW_TO_JSON(tp) 
+              FROM (
+                SELECT tp.sifratp, tp.naziv AS nazivtp
+                FROM tipproizvoda tp
+                WHERE tp.sifratp = m.sifratp
+              ) tp
+             ) AS tipproizvoda
+           FROM magacin m
+           WHERE m.siframagacina = pl.siframagacina
+         ) tp_object
+        ) AS magacin,
         pl.datum
       FROM popisnalista pl
       WHERE pl.siframagacina = $1 AND pl.datum = $2`,
