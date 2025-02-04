@@ -7,6 +7,7 @@ const RadniNalogCard = ({ radniNalog, onEdit, onDelete }) => {
   return (
     <div className="bg-white p-6 rounded-lg shadow-md flex flex-col gap-4">
       <div className="flex-1">
+        <p className="text-gray-800">Broj: {radniNalog.brojrn}</p>
         <h2 className="text-xl font-semibold">{radniNalog.proizvod.naziv}</h2>
         <p>Status: {radniNalog.status}</p>
         <p>Datum: {new Date(radniNalog.datum).toLocaleDateString()}</p>

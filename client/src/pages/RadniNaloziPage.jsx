@@ -26,6 +26,7 @@ const RadniNaloziPage = () => {
     elenergija: 0,
     brojtp: "",
     brojts: "",
+    ukupnoSati: 0,
   });
   const [isEditing, setIsEditing] = useState(false);
   const [angazovanja, setAngazovanja] = useState([]);
@@ -35,9 +36,9 @@ const RadniNaloziPage = () => {
     jmbg: "",
   });
   const [editBrojrn, setEditBrojrn] = useState(undefined);
-  const [fetchedNalog, setFetchedNalog] = useState();
   const [zaposleni, setZaposleni] = useState([]);
   const [uloge, setUloge] = useState([]);
+  const [ukupnoSati, setUkupnoSati] = useState(0);
 
   const fetchRadniNalozi = async () => {
     try {
@@ -63,7 +64,6 @@ const RadniNaloziPage = () => {
         throw new Error("Greška pri dobijanju radnog naloga");
       }
       const data = await response.json();
-      setFetchedNalog(data);
       return data;
     } catch (err) {
       setError(err.message);
@@ -188,6 +188,7 @@ const RadniNaloziPage = () => {
       elenergija: rn.elenergija || 0,
       brojtp: rn.tehnoloskipostupak.brojtp,
       brojts: rn.tehnickaspecifikacija.brojts,
+      ukupnoSati: rn.ukupnosati || 0,
     });
 
     setNovoAngazovanje((prev) => ({
@@ -422,7 +423,9 @@ const RadniNaloziPage = () => {
             className="bg-white p-6 rounded-lg shadow-md mb-6"
           >
             <h2 className="text-xl font-semibold mb-4">
-              {isEditing ? "Izmeni radni nalog" : "Dodaj novi radni nalog"}
+              {isEditing
+                ? "Izmeni radni nalog " + editBrojrn
+                : "Dodaj novi radni nalog"}
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               <Input
@@ -535,6 +538,16 @@ const RadniNaloziPage = () => {
                 min={0}
                 required
               />
+              {isEditing && (
+                <Input
+                  type="number"
+                  name="ukupnoSati"
+                  value={newNalog.ukupnoSati}
+                  onChange={handleInputChange}
+                  label="Ukupno sati"
+                  readonly={true}
+                />
+              )}
             </div>
 
             <div className="mt-4">
