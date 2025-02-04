@@ -73,6 +73,29 @@ const ProizvodController = {
       res.status(500).send(error.message);
     }
   },
+
+  getByType: async (req, res) => {
+    try {
+      const { sifratp } = req.params;
+
+      if (!sifratp) {
+        return res
+          .status(400)
+          .json({ message: "Morate navesti tip proizvoda." });
+      }
+
+      const proizvodi = await ProizvodService.getByType(sifratp);
+
+      if (proizvodi.length === 0) {
+        return res.status(404).json({ message: "Nema proizvoda za dati tip." });
+      }
+
+      res.json(proizvodi);
+    } catch (error) {
+      console.error(error.message);
+      res.status(500).send(error.message);
+    }
+  },
 };
 
 module.exports = ProizvodController;

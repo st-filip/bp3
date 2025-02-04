@@ -68,6 +68,30 @@ const ProivodService = {
       sifraproizvoda,
     ]);
   },
+
+  getByType: async (sifratp) => {
+    const result = await pool.query(
+      `SELECT 
+        p.sifraproizvoda, 
+        p.naziv,
+        (SELECT ROW_TO_JSON(jm_object) 
+         FROM (
+           SELECT sifrajm, naziv AS nazivjm 
+           FROM jedinicamere 
+           WHERE sifrajm = p.sifrajm
+         ) jm_object) AS jedinicamere,
+        (SELECT ROW_TO_JSON(tp_object) 
+         FROM (
+           SELECT sifratp, naziv AS nazivtp 
+           FROM tipproizvoda 
+           WHERE sifratp = p.sifratp
+         ) tp_object) AS tipproizvoda
+      FROM proizvod p
+      WHERE p.sifratp = $1 and p.naziv NOT ILIKE 'Proizvod%'`,
+      [sifratp]
+    );
+    return result.rows;
+  },
 };
 
 module.exports = ProivodService;

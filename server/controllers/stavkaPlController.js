@@ -30,6 +30,26 @@ const StavkaPlController = {
     }
   },
 
+  getById: async (req, res) => {
+    try {
+      const { siframagacina, datum, rednibroj } = req.params;
+      const records = await StavkaPlService.getById(
+        siframagacina,
+        datum,
+        rednibroj
+      );
+
+      if (records.length == 0) {
+        return res.status(404).json({ message: "Stavka nije pronađena." });
+      }
+
+      res.json(records);
+    } catch (error) {
+      console.error(error.message);
+      res.status(500).send(error.message);
+    }
+  },
+
   create: async (req, res) => {
     try {
       const { siframagacina, datum, kolicina, sifraproizvoda } = req.body;

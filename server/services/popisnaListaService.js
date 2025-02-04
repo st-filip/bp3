@@ -66,6 +66,28 @@ const PopisnaListaService = {
       "DELETE FROM popisnalista WHERE siframagacina = $1 AND datum = $2",
       [siframagacina, datum]
     );
+
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+
+      await client.query(
+        "DELETE FROM stavkapl WHERE siframagacina = $1 AND datum = $2",
+        [siframagacina, datum]
+      );
+
+      await client.query(
+        "DELETE FROM popisnalista WHERE siframagacina = $1 AND datum = $2",
+        [siframagacina, datum]
+      );
+
+      await client.query("COMMIT");
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
   },
 };
 
