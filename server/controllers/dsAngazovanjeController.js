@@ -11,11 +11,42 @@ const DsAngazovanjeController = {
     }
   },
 
+  getAllForDS: async (req, res) => {
+    try {
+      const { brojds } = req.params;
+      const records = await DsAngazovanjeService.getAllForDS(brojds);
+      res.json(records);
+    } catch (error) {
+      console.error(error.message);
+      res.status(500).send(error.message);
+    }
+  },
+
+  getById: async (req, res) => {
+    try {
+      const { brojds, jmbg, sifrauloge } = req.params;
+      const record = await DsAngazovanjeService.getById(
+        brojds,
+        jmbg,
+        sifrauloge
+      );
+
+      if (!record) {
+        return res.status(404).json({ message: "Angažovanje nije pronađeno." });
+      }
+
+      res.json(record);
+    } catch (error) {
+      console.error(error.message);
+      res.status(500).send(error.message);
+    }
+  },
+
   create: async (req, res) => {
     try {
       const { brojds, jmbg, sifrauloge, napomena } = req.body;
 
-      if (!brojds || !jmbg || !sifrauloge || !napomena) {
+      if (!brojds || !jmbg || !sifrauloge) {
         return res.status(400).json({ message: "Sva polja su obavezna." });
       }
 
