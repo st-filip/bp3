@@ -24,6 +24,7 @@ const DnevniciSmenaPage = () => {
   });
   const [zaposleni, setZaposleni] = useState([]);
   const [uloge, setUloge] = useState([]);
+  const [isEditingAngazovanje, setIsEditingAngazovanje] = useState(false);
 
   const fetchDnevniciSmena = async () => {
     const response = await fetch("http://localhost:5000/dnevnik-smene");
@@ -286,28 +287,94 @@ const DnevniciSmenaPage = () => {
   };
 
   const handleDodajAngazovanje = async () => {
-    try {
-      const response = await fetch(`http://localhost:5000/ds-angazovanje`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(novoAngazovanje),
-      });
-      if (!response.ok) {
-        throw new Error("Greška pri dodavanju angažovanja");
+    if (isEditingAngazovanje) {
+      try {
+        const response = await fetch(
+          `http://localhost:5000/ds-angazovanje/${editBrojds}/${novoAngazovanje.jmbg}/${novoAngazovanje.sifrauloge}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ napomena: novoAngazovanje.napomena }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Greška pri ažuriranju angažovanja");
+        }
+
+        const updatedAngazovanje = await fetchDSangazovanjeById(
+          editBrojds,
+          novoAngazovanje.jmbg,
+          novoAngazovanje.sifrauloge
+        );
+
+        setAngazovanja((prev) =>
+          prev.map((a) =>
+            a.uloga.sifrauloge === novoAngazovanje.sifrauloge &&
+            a.zaposleni.jmbg === novoAngazovanje.jmbg
+              ? updatedAngazovanje
+              : a
+          )
+        );
+
+        setIsEditingAngazovanje(false);
+        setNovoAngazovanje((prev) => ({
+          ...prev,
+          jmbg: "",
+          sifrauloge: "",
+          napomena: "",
+        }));
+        alert("Angažovanje je uspešno ažurirano.");
+      } catch (err) {
+        console.error(err.message);
+        alert("Došlo je do greške pri ažuriranju angažovanja.");
       }
-      const data = await response.json();
-      const novoDSAngazovanje = await fetchDSangazovanjeById(
-        data.brojds,
-        data.jmbg,
-        data.sifrauloge
-      );
-      setAngazovanja((prev) => [...prev, novoDSAngazovanje]);
-      setNovoAngazovanje({ sifrauloge: "", jmbg: "", napomena: "" });
-      alert("Angažovanje je uspešno dodato.");
-    } catch (err) {
-      console.error(err.message);
-      alert("Došlo je do greške pri dodavanju angažovanja.");
+    } else {
+      try {
+        const response = await fetch(`http://localhost:5000/ds-angazovanje`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(novoAngazovanje),
+        });
+        if (!response.ok) {
+          throw new Error("Greška pri dodavanju angažovanja");
+        }
+        const data = await response.json();
+        const novoDSAngazovanje = await fetchDSangazovanjeById(
+          data.brojds,
+          data.jmbg,
+          data.sifrauloge
+        );
+        setAngazovanja((prev) => [...prev, novoDSAngazovanje]);
+        setNovoAngazovanje({ sifrauloge: "", jmbg: "", napomena: "" });
+        alert("Angažovanje je uspešno dodato.");
+      } catch (err) {
+        console.error(err.message);
+        alert("Došlo je do greške pri dodavanju angažovanja.");
+      }
     }
+  };
+
+  const handleEditAngazovanje = async (a) => {
+    setIsEditingAngazovanje(true);
+    setNovoAngazovanje({
+      brojds: a.brojds,
+      sifrauloge: a.uloga.sifrauloge,
+      jmbg: a.jmbg,
+      napomena: a.napomena ? a.napomena : "",
+    });
+  };
+
+  const handleCancelEditAngazovanje = () => {
+    setIsEditingAngazovanje(false);
+    setNovoAngazovanje((prev) => ({
+      ...prev,
+      jmbg: "",
+      sifrauloge: "",
+      napomena: "",
+    }));
   };
 
   return (
@@ -390,43 +457,49 @@ const DnevniciSmenaPage = () => {
                 }}
               >
                 <h2 className="text-xl font-semibold mb-4">
-                  Dodaj novo angažovanje
+                  {isEditingAngazovanje
+                    ? "Izmeni angažovanje"
+                    : "Dodaj novo angažovanje"}
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Select
-                    name="jmbg"
-                    value={novoAngazovanje.jmbg}
-                    onChange={(e) =>
-                      setNovoAngazovanje((prev) => ({
-                        ...prev,
-                        jmbg: e.target.value,
-                      }))
-                    }
-                    label="Zaposleni"
-                    option1="zaposlenog"
-                    options={zaposleni.map((zaposleni) => ({
-                      value: zaposleni.jmbg,
-                      label: zaposleni.imeprezime,
-                    }))}
-                    required
-                  />
-                  <Select
-                    name="sifrauloge"
-                    value={novoAngazovanje.sifrauloge}
-                    onChange={(e) =>
-                      setNovoAngazovanje((prev) => ({
-                        ...prev,
-                        sifrauloge: e.target.value,
-                      }))
-                    }
-                    label="Uloga"
-                    option1="ulogu"
-                    options={uloge.map((uloga) => ({
-                      value: uloga.sifrauloge,
-                      label: uloga.naziv,
-                    }))}
-                    required
-                  />
+                  {!isEditingAngazovanje && (
+                    <>
+                      <Select
+                        name="jmbg"
+                        value={novoAngazovanje.jmbg}
+                        onChange={(e) =>
+                          setNovoAngazovanje((prev) => ({
+                            ...prev,
+                            jmbg: e.target.value,
+                          }))
+                        }
+                        label="Zaposleni"
+                        option1="zaposlenog"
+                        options={zaposleni.map((zaposleni) => ({
+                          value: zaposleni.jmbg,
+                          label: zaposleni.imeprezime,
+                        }))}
+                        required
+                      />
+                      <Select
+                        name="sifrauloge"
+                        value={novoAngazovanje.sifrauloge}
+                        onChange={(e) =>
+                          setNovoAngazovanje((prev) => ({
+                            ...prev,
+                            sifrauloge: e.target.value,
+                          }))
+                        }
+                        label="Uloga"
+                        option1="ulogu"
+                        options={uloge.map((uloga) => ({
+                          value: uloga.sifrauloge,
+                          label: uloga.naziv,
+                        }))}
+                        required
+                      />
+                    </>
+                  )}
                   <Input
                     type="text"
                     name="napomena"
@@ -438,15 +511,31 @@ const DnevniciSmenaPage = () => {
                       }));
                     }}
                     label="Napomena"
-                    required
                   />
                 </div>
-                <div className="mt-4">
-                  <Button
-                    type="submit"
-                    icon={<FaPlus size={20} />}
-                    variant="success"
-                  />
+                <div className="mt-4 flex">
+                  {isEditingAngazovanje ? (
+                    <>
+                      <Button
+                        type="submit"
+                        icon={<FaEdit size={20} />}
+                        variant="success"
+                        className="mr-2"
+                      />
+                      <Button
+                        type="button"
+                        icon={<FaTimes size={20} />}
+                        variant="danger"
+                        onClick={handleCancelEditAngazovanje}
+                      />
+                    </>
+                  ) : (
+                    <Button
+                      type="submit"
+                      icon={<FaPlus size={20} />}
+                      variant="success"
+                    />
+                  )}
                 </div>
               </form>
 
@@ -479,7 +568,14 @@ const DnevniciSmenaPage = () => {
                             {angazovanje.uloga.nazivuloge}
                           </td>
                           <td className="px-4 py-3">{angazovanje.napomena}</td>
-                          <td className="px-4 py-3 text-right">
+                          <td className="px-4 py-3 flex justify-end">
+                            <Button
+                              icon={<FaEdit size={20} />}
+                              onClick={() => handleEditAngazovanje(angazovanje)}
+                              variant="info"
+                              text="Izmeni"
+                              className="mr-2"
+                            />
                             <Button
                               text="Obriši"
                               icon={<FaTrash size={20} />}
@@ -490,7 +586,6 @@ const DnevniciSmenaPage = () => {
                                 )
                               }
                               variant="danger"
-                              className="ml-auto"
                             />
                           </td>
                         </tr>

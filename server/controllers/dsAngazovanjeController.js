@@ -69,10 +69,6 @@ const DsAngazovanjeController = {
       const { brojds, jmbg, sifrauloge } = req.params;
       const { napomena } = req.body;
 
-      if (!napomena) {
-        return res.status(400).json({ message: "Polje napomena je obavezno." });
-      }
-
       await DsAngazovanjeService.update(brojds, jmbg, sifrauloge, napomena);
 
       res.json({ message: "Napomena je uspešno ažurirana." });
