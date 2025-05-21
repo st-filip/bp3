@@ -25,6 +25,17 @@ const DnevniciSmenaPage = () => {
   const [zaposleni, setZaposleni] = useState([]);
   const [uloge, setUloge] = useState([]);
   const [isEditingAngazovanje, setIsEditingAngazovanje] = useState(false);
+  const [poslovi, setPoslovi] = useState([]);
+  const [isEditingStavka, setIsEditingStavka] = useState(false);
+  const [stavke, setStavke] = useState([]);
+  const [newStavka, setNewStavka] = useState({
+    brojds: "",
+    ostvarenakol: "",
+    vremeod: "",
+    vremedo: "",
+    brojradnika: "",
+    sifraposla: "",
+  });
 
   const fetchDnevniciSmena = async () => {
     const response = await fetch("http://localhost:5000/dnevnik-smene");
@@ -79,6 +90,19 @@ const DnevniciSmenaPage = () => {
     }
   };
 
+  const fetchPoslovi = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/posao-proizvodnje");
+      if (!response.ok) {
+        throw new Error("Greška pri dobijanju poslova proizvodnje");
+      }
+      const data = await response.json();
+      setPoslovi(data);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
   const fetchDSangazovanjeById = async (brojds, jmbg, sifrauloge) => {
     try {
       const response = await fetch(
@@ -94,11 +118,41 @@ const DnevniciSmenaPage = () => {
     }
   };
 
+  const fetchStavkaById = async (brojds, rednibroj) => {
+    try {
+      const response = await fetch(
+        `http://localhost:5000/stavka-pp/${brojds}/${rednibroj}`
+      );
+      if (!response.ok) {
+        throw new Error("Greška pri dobijanju stavke");
+      }
+      const data = await response.json();
+      return data;
+    } catch (err) {
+      console.error(err.message);
+    }
+  };
+
+  const fetchStavkeByBrojDS = async (brojds) => {
+    try {
+      const response = await fetch(`http://localhost:5000/stavka-pp/${brojds}`);
+      if (!response.ok) {
+        throw new Error("Greška pri dobijanju stavki");
+      }
+      const data = await response.json();
+      setStavke(data);
+    } catch (err) {
+      console.error(err.message);
+      setStavke([]);
+    }
+  };
+
   useEffect(() => {
     fetchDnevniciSmena();
     fetchRadniNalozi();
     fetchZaposleni();
     fetchUloge();
+    fetchPoslovi();
   }, []);
 
   const handleAddSmena = async (event) => {
@@ -181,6 +235,11 @@ const DnevniciSmenaPage = () => {
       brojds: ds.brojds,
     }));
 
+    setNewStavka((prev) => ({
+      ...prev,
+      brojds: ds.brojds,
+    }));
+
     setEditBrojds(ds.brojds);
 
     try {
@@ -196,6 +255,8 @@ const DnevniciSmenaPage = () => {
       console.error(err.message);
       alert("Došlo je do greške pri dobijanju angažovanja.");
     }
+
+    fetchStavkeByBrojDS(ds.brojds);
 
     setIsAdding(true);
     setIsEditing(true);
@@ -367,6 +428,21 @@ const DnevniciSmenaPage = () => {
     });
   };
 
+  const handleEditStavka = async (s) => {
+    console.log(s);
+    setIsEditingStavka(true);
+    setNewStavka({
+      brojds: s.brojds,
+      rednibroj: s.rednibroj,
+      sifraposla: s.sifraposla,
+      vremeod: s.vremeod,
+      vremedo: s.vremedo,
+      sifraposla: s.posao.sifraposla,
+      brojradnika: s.brojradnika,
+      ostvarenakol: s.ostvarenakol,
+    });
+  };
+
   const handleCancelEditAngazovanje = () => {
     setIsEditingAngazovanje(false);
     setNovoAngazovanje((prev) => ({
@@ -375,6 +451,127 @@ const DnevniciSmenaPage = () => {
       sifrauloge: "",
       napomena: "",
     }));
+  };
+
+  const handleCancelEditStavka = () => {
+    setIsEditingStavka(false);
+    setNewStavka((prev) => ({
+      ...prev,
+      sifraposla: "",
+      vremeod: "",
+      vremedo: "",
+      ostvarenakol: "",
+      brojradnika: "",
+    }));
+  };
+
+  const handleDodajStavku = async () => {
+    console.log(newStavka);
+    if (isEditingStavka) {
+      console.log("Izmena");
+      try {
+        const response = await fetch(
+          `http://localhost:5000/stavka-pp/${editBrojds}/${newStavka.rednibroj}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              ostvarenakol: newStavka.ostvarenakol,
+              vremedo: newStavka.vremedo,
+              vremeod: newStavka.vremeod,
+              sifraposla: newStavka.sifraposla,
+              brojradnika: newStavka.brojradnika,
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Greška pri ažuriranju stavke posla");
+        }
+
+        const updatedStavka = await fetchStavkaById(
+          editBrojds,
+          newStavka.rednibroj
+        );
+
+        setStavke((prev) =>
+          prev.map((s) =>
+            s.brojds === newStavka.brojds && s.rednibroj === newStavka.rednibroj
+              ? updatedStavka
+              : s
+          )
+        );
+
+        setIsEditingStavka(false);
+        setNewStavka((prev) => ({
+          ...prev,
+          ostvarenakol: "",
+          vremedo: "",
+          vremeod: "",
+          sifraposla: "",
+          brojradnika: "",
+        }));
+        alert("Stavka posla je uspešno ažurirana.");
+      } catch (err) {
+        console.error(err.message);
+        alert("Došlo je do greške pri ažuriranju stavke posla.");
+      }
+    } else {
+      try {
+        const response = await fetch(`http://localhost:5000/stavka-pp`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(newStavka),
+        });
+        if (!response.ok) {
+          throw new Error("Greška pri dodavanju stavke");
+        }
+        const data = await response.json();
+        const novaStavka = await fetchStavkaById(data.brojds, data.rednibroj);
+        console.log(novaStavka);
+        setStavke((prev) => [...prev, novaStavka]);
+        console.log(stavke);
+        alert("Stavka je uspešno dodata.");
+      } catch (err) {
+        console.error(err.message);
+        alert("Došlo je do greške pri dodavanju stavke.");
+      } finally {
+        setNewStavka((prev) => ({
+          ...prev,
+          ostvarenakol: "",
+          vremedo: "",
+          vremeod: "",
+          sifraposla: "",
+          brojradnika: "",
+        }));
+      }
+    }
+  };
+
+  const handleDeleteStavka = async (rednibroj) => {
+    const confirmDelete = window.confirm(
+      "Da li ste sigurni da želite da obrišete ovu stavku posla?"
+    );
+    if (!confirmDelete) return;
+
+    try {
+      const response = await fetch(
+        `http://localhost:5000/stavka-pp/${editBrojds}/${rednibroj}`,
+        {
+          method: "DELETE",
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Greška pri brisanju stavke posla");
+      }
+      setStavke((prev) => prev.filter((s) => s.rednibroj !== rednibroj));
+      alert("Stavka posla je uspešno obrisana.");
+    } catch (err) {
+      console.error(err.message);
+      alert("Došlo je do greške pri brisanju stavke posla.");
+    }
   };
 
   return (
@@ -434,7 +631,11 @@ const DnevniciSmenaPage = () => {
                 options={radniNalozi.map((nalog) => ({
                   value: nalog.brojrn,
                   label:
-                    nalog.brojrn + " | " + nalog.proizvodnipogon.naziv_pogona,
+                    nalog.brojrn +
+                    " | " +
+                    nalog.proizvodnipogon.naziv_pogona +
+                    " | " +
+                    nalog.proizvod.naziv,
                 }))}
                 required
               />
@@ -449,156 +650,331 @@ const DnevniciSmenaPage = () => {
           </form>
 
           {isEditing && (
-            <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  handleDodajAngazovanje();
-                }}
-              >
-                <h2 className="text-xl font-semibold mb-4">
-                  {isEditingAngazovanje
-                    ? "Izmeni angažovanje"
-                    : "Dodaj novo angažovanje"}
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {!isEditingAngazovanje && (
-                    <>
-                      <Select
-                        name="jmbg"
-                        value={novoAngazovanje.jmbg}
-                        onChange={(e) =>
-                          setNovoAngazovanje((prev) => ({
-                            ...prev,
-                            jmbg: e.target.value,
-                          }))
-                        }
-                        label="Zaposleni"
-                        option1="zaposlenog"
-                        options={zaposleni.map((zaposleni) => ({
-                          value: zaposleni.jmbg,
-                          label: zaposleni.imeprezime,
-                        }))}
-                        required
-                      />
-                      <Select
-                        name="sifrauloge"
-                        value={novoAngazovanje.sifrauloge}
-                        onChange={(e) =>
-                          setNovoAngazovanje((prev) => ({
-                            ...prev,
-                            sifrauloge: e.target.value,
-                          }))
-                        }
-                        label="Uloga"
-                        option1="ulogu"
-                        options={uloge.map((uloga) => ({
-                          value: uloga.sifrauloge,
-                          label: uloga.naziv,
-                        }))}
-                        required
-                      />
-                    </>
-                  )}
-                  <Input
-                    type="text"
-                    name="napomena"
-                    value={novoAngazovanje.napomena}
-                    onChange={(e) => {
-                      setNovoAngazovanje((prev) => ({
-                        ...prev,
-                        napomena: e.target.value,
-                      }));
-                    }}
-                    label="Napomena"
-                  />
-                </div>
-                <div className="mt-4 flex">
-                  {isEditingAngazovanje ? (
-                    <>
+            <>
+              <div className="bg-white p-6 rounded-lg shadow-md mb-6">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleDodajAngazovanje();
+                  }}
+                >
+                  <h2 className="text-xl font-semibold mb-4">
+                    {isEditingAngazovanje
+                      ? "Izmeni angažovanje"
+                      : "Dodaj novo angažovanje"}
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {!isEditingAngazovanje && (
+                      <>
+                        <Select
+                          name="jmbg"
+                          value={novoAngazovanje.jmbg}
+                          onChange={(e) =>
+                            setNovoAngazovanje((prev) => ({
+                              ...prev,
+                              jmbg: e.target.value,
+                            }))
+                          }
+                          label="Zaposleni"
+                          option1="zaposlenog"
+                          options={zaposleni.map((zaposleni) => ({
+                            value: zaposleni.jmbg,
+                            label: zaposleni.imeprezime,
+                          }))}
+                          required
+                        />
+                        <Select
+                          name="sifrauloge"
+                          value={novoAngazovanje.sifrauloge}
+                          onChange={(e) =>
+                            setNovoAngazovanje((prev) => ({
+                              ...prev,
+                              sifrauloge: e.target.value,
+                            }))
+                          }
+                          label="Uloga"
+                          option1="ulogu"
+                          options={uloge.map((uloga) => ({
+                            value: uloga.sifrauloge,
+                            label: uloga.naziv,
+                          }))}
+                          required
+                        />
+                      </>
+                    )}
+                    <Input
+                      type="text"
+                      name="napomena"
+                      value={novoAngazovanje.napomena}
+                      onChange={(e) => {
+                        setNovoAngazovanje((prev) => ({
+                          ...prev,
+                          napomena: e.target.value,
+                        }));
+                      }}
+                      label="Napomena"
+                    />
+                  </div>
+                  <div className="mt-4 flex">
+                    {isEditingAngazovanje ? (
+                      <>
+                        <Button
+                          type="submit"
+                          icon={<FaEdit size={20} />}
+                          variant="success"
+                          className="mr-2"
+                        />
+                        <Button
+                          type="button"
+                          icon={<FaTimes size={20} />}
+                          variant="danger"
+                          onClick={handleCancelEditAngazovanje}
+                        />
+                      </>
+                    ) : (
                       <Button
                         type="submit"
-                        icon={<FaEdit size={20} />}
+                        icon={<FaPlus size={20} />}
                         variant="success"
-                        className="mr-2"
                       />
-                      <Button
-                        type="button"
-                        icon={<FaTimes size={20} />}
-                        variant="danger"
-                        onClick={handleCancelEditAngazovanje}
-                      />
-                    </>
-                  ) : (
-                    <Button
-                      type="submit"
-                      icon={<FaPlus size={20} />}
-                      variant="success"
-                    />
-                  )}
-                </div>
-              </form>
+                    )}
+                  </div>
+                </form>
 
-              {/* Prikaz angažovanja */}
+                {/* Prikaz angažovanja */}
 
-              <h2 className="text-xl font-semibold my-4">Angažovanja</h2>
-              {angazovanja.length > 0 ? (
-                <div className="overflow-x-auto shadow-md rounded-xl border border-gray-300">
-                  <table className="w-full text-sm text-left text-gray-700">
-                    <thead className="bg-gray-100 text-gray-900 uppercase text-xs">
-                      <tr>
-                        <th className="px-4 py-3 border-b">Zaposleni</th>
-                        <th className="px-4 py-3 border-b">Uloga</th>
-                        <th className="px-4 py-3 border-b">Napomena</th>
-                        <th className="px-4 py-3 border-b"></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {angazovanja.map((angazovanje, index) => (
-                        <tr
-                          key={`${angazovanje.zaposleni.jmbg}-${angazovanje.uloga.sifrauloge}`}
-                          className={`${
-                            index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                          } hover:bg-gray-100 transition-colors`}
-                        >
-                          <td className="px-4 py-3">
-                            {angazovanje.imeprezime}
-                          </td>
-                          <td className="px-4 py-3">
-                            {angazovanje.uloga.nazivuloge}
-                          </td>
-                          <td className="px-4 py-3">{angazovanje.napomena}</td>
-                          <td className="px-4 py-3 flex justify-end">
-                            <Button
-                              icon={<FaEdit size={20} />}
-                              onClick={() => handleEditAngazovanje(angazovanje)}
-                              variant="info"
-                              text="Izmeni"
-                              className="mr-2"
-                            />
-                            <Button
-                              text="Obriši"
-                              icon={<FaTrash size={20} />}
-                              onClick={() =>
-                                handleDeleteAngazovanje(
-                                  angazovanje.uloga.sifrauloge,
-                                  angazovanje.zaposleni.jmbg
-                                )
-                              }
-                              variant="danger"
-                            />
-                          </td>
+                <h2 className="text-xl font-semibold my-4">Angažovanja</h2>
+                {angazovanja.length > 0 ? (
+                  <div className="overflow-x-auto shadow-md rounded-xl border border-gray-300">
+                    <table className="w-full text-sm text-left text-gray-700">
+                      <thead className="bg-gray-100 text-gray-900 uppercase text-xs">
+                        <tr>
+                          <th className="px-4 py-3 border-b">Zaposleni</th>
+                          <th className="px-4 py-3 border-b">Uloga</th>
+                          <th className="px-4 py-3 border-b">Napomena</th>
+                          <th className="px-4 py-3 border-b"></th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div className=" text-gray-500 text-sm">
-                  Trenutno ne postoje angažovanja.
-                </div>
-              )}
-            </div>
+                      </thead>
+                      <tbody>
+                        {angazovanja.map((angazovanje, index) => (
+                          <tr
+                            key={`${angazovanje.zaposleni.jmbg}-${angazovanje.uloga.sifrauloge}`}
+                            className={`${
+                              index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                            } hover:bg-gray-100 transition-colors`}
+                          >
+                            <td className="px-4 py-3">
+                              {angazovanje.imeprezime}
+                            </td>
+                            <td className="px-4 py-3">
+                              {angazovanje.uloga.nazivuloge}
+                            </td>
+                            <td className="px-4 py-3">
+                              {angazovanje.napomena}
+                            </td>
+                            <td className="px-4 py-3 flex justify-end">
+                              <Button
+                                icon={<FaEdit size={20} />}
+                                onClick={() =>
+                                  handleEditAngazovanje(angazovanje)
+                                }
+                                variant="info"
+                                text="Izmeni"
+                                className="mr-2"
+                              />
+                              <Button
+                                text="Obriši"
+                                icon={<FaTrash size={20} />}
+                                onClick={() =>
+                                  handleDeleteAngazovanje(
+                                    angazovanje.uloga.sifrauloge,
+                                    angazovanje.zaposleni.jmbg
+                                  )
+                                }
+                                variant="danger"
+                              />
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className=" text-gray-500 text-sm">
+                    Trenutno ne postoje angažovanja.
+                  </div>
+                )}
+              </div>
+
+              {/* Poslovi */}
+
+              <div className="bg-white p-6 rounded-lg shadow-md mb-6">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleDodajStavku();
+                  }}
+                >
+                  <h2 className="text-xl font-semibold mb-4">
+                    {isEditingStavka ? "Izmeni posao" : "Dodaj novi posao"}
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <Select
+                      name="sifraposla"
+                      value={newStavka.sifraposla}
+                      onChange={(e) =>
+                        setNewStavka((prev) => ({
+                          ...prev,
+                          sifraposla: e.target.value,
+                        }))
+                      }
+                      label="Posao proizvodnje"
+                      options={poslovi.map((posao) => ({
+                        value: posao.sifraposla,
+                        label: posao.naziv,
+                      }))}
+                      required
+                    />
+                    <Input
+                      type="number"
+                      name="ostvarenakol"
+                      value={newStavka.ostvarenakol}
+                      onChange={(e) => {
+                        setNewStavka((prev) => ({
+                          ...prev,
+                          ostvarenakol: e.target.value,
+                        }));
+                      }}
+                      label="Ostvarena količina"
+                    />
+                    <Input
+                      type="time"
+                      name="vremeod"
+                      value={newStavka.vremeod}
+                      onChange={(e) => {
+                        setNewStavka((prev) => ({
+                          ...prev,
+                          vremeod: e.target.value,
+                        }));
+                      }}
+                      label="Vreme početka"
+                    />
+                    <Input
+                      type="time"
+                      name="vremedo"
+                      value={newStavka.vremedo}
+                      onChange={(e) => {
+                        setNewStavka((prev) => ({
+                          ...prev,
+                          vremedo: e.target.value,
+                        }));
+                      }}
+                      label="Vreme završetka"
+                    />
+                    <Input
+                      type="number"
+                      name="brojradnika"
+                      value={newStavka.brojradnika}
+                      min={1}
+                      onChange={(e) => {
+                        setNewStavka((prev) => ({
+                          ...prev,
+                          brojradnika: e.target.value,
+                        }));
+                      }}
+                      label="Broj angažovanih radnika"
+                    />
+                  </div>
+                  <div className="mt-4 flex">
+                    {isEditingStavka ? (
+                      <>
+                        <Button
+                          type="submit"
+                          icon={<FaEdit size={20} />}
+                          variant="success"
+                          className="mr-2"
+                        />
+                        <Button
+                          type="button"
+                          icon={<FaTimes size={20} />}
+                          variant="danger"
+                          onClick={handleCancelEditStavka}
+                        />
+                      </>
+                    ) : (
+                      <Button
+                        type="submit"
+                        icon={<FaPlus size={20} />}
+                        variant="success"
+                      />
+                    )}
+                  </div>
+                </form>
+
+                {/* Prikaz poslova */}
+
+                <h2 className="text-xl font-semibold my-4">
+                  Poslovi proizvodnje
+                </h2>
+                {stavke.length > 0 ? (
+                  <div className="overflow-x-auto shadow-md rounded-xl border border-gray-300">
+                    <table className="w-full text-sm text-left text-gray-700">
+                      <thead className="bg-gray-100 text-gray-900 uppercase text-xs">
+                        <tr>
+                          <th className="px-4 py-3 border-b">Posao</th>
+                          <th className="px-4 py-3 border-b">
+                            Ostvarena količina
+                          </th>
+                          <th className="px-4 py-3 border-b">Vreme početka</th>
+                          <th className="px-4 py-3 border-b">
+                            Vreme završetka
+                          </th>
+                          <th className="px-4 py-3 border-b">Broj radnika</th>
+                          <th className="px-4 py-3 border-b"></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {stavke.map((stavka, index) => (
+                          <tr
+                            key={`${stavka.brojds}-${stavka.rednibroj}`}
+                            className={`${
+                              index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                            } hover:bg-gray-100 transition-colors`}
+                          >
+                            <td className="px-4 py-3">{stavka.posao.naziv}</td>
+                            <td className="px-4 py-3">{stavka.ostvarenakol}</td>
+                            <td className="px-4 py-3">{stavka.vremeod}</td>
+                            <td className="px-4 py-3">{stavka.vremedo}</td>
+                            <td className="px-4 py-3">{stavka.brojradnika}</td>
+                            <td className="px-4 py-3 flex justify-end">
+                              <Button
+                                icon={<FaEdit size={20} />}
+                                onClick={() => handleEditStavka(stavka)}
+                                variant="info"
+                                text="Izmeni"
+                                className="mr-2"
+                              />
+                              <Button
+                                text="Obriši"
+                                icon={<FaTrash size={20} />}
+                                onClick={() =>
+                                  handleDeleteStavka(stavka.rednibroj)
+                                }
+                                variant="danger"
+                              />
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className=" text-gray-500 text-sm">
+                    Trenutno ne postoje poslovi.
+                  </div>
+                )}
+              </div>
+            </>
           )}
         </>
       )}

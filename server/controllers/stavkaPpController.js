@@ -47,31 +47,31 @@ const StavkaPpController = {
     try {
       const {
         brojds,
-        ostvarenaKol,
-        vremeOd,
-        vremeDo,
-        brojRadnika,
-        sifraPosla,
+        ostvarenakol,
+        vremeod,
+        vremedo,
+        brojradnika,
+        sifraposla,
       } = req.body;
 
       if (
         !brojds ||
-        !ostvarenaKol ||
-        !vremeOd ||
-        !vremeDo ||
-        !brojRadnika ||
-        !sifraPosla
+        !ostvarenakol ||
+        !vremeod ||
+        !vremedo ||
+        !brojradnika ||
+        !sifraposla
       ) {
         return res.status(400).json({ message: "Sva polja su obavezna." });
       }
 
       const newRecord = await StavkaPpService.create(
         brojds,
-        ostvarenaKol,
-        vremeOd,
-        vremeDo,
-        brojRadnika,
-        sifraPosla
+        ostvarenakol,
+        vremeod,
+        vremedo,
+        brojradnika,
+        sifraposla
       );
       res.json(newRecord);
     } catch (error) {
@@ -83,15 +83,15 @@ const StavkaPpController = {
   update: async (req, res) => {
     try {
       const { brojds, rednibroj } = req.params;
-      const { ostvarenaKol, vremeOd, vremeDo, brojRadnika, sifraPosla } =
+      const { ostvarenakol, vremeod, vremedo, brojradnika, sifraposla } =
         req.body;
 
       if (
-        !vremeOd ||
-        !vremeDo ||
-        !ostvarenaKol ||
-        !brojRadnika ||
-        !sifraPosla
+        !vremeod ||
+        !vremedo ||
+        !ostvarenakol ||
+        !brojradnika ||
+        !sifraposla
       ) {
         return res.status(400).json({ message: "Sva polja su obavezna." });
       }
@@ -99,11 +99,11 @@ const StavkaPpController = {
       await StavkaPpService.update(
         brojds,
         rednibroj,
-        ostvarenaKol,
-        vremeOd,
-        vremeDo,
-        brojRadnika,
-        sifraPosla
+        ostvarenakol,
+        vremeod,
+        vremedo,
+        brojradnika,
+        sifraposla
       );
 
       res.json({ message: "Stavka je uspešno ažurirana." });
