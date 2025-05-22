@@ -18,6 +18,7 @@ const rnAngazovanjeRoutes = require("./routes/rnAngazovanjeRoutes");
 const tipProizvodaRoutes = require("./routes/tipProizvodaRoutes");
 const posaoProizvodnjeRoutes = require("./routes/posaoProizvodnjeRoutes");
 const stavkaPpRoutes = require("./routes/stavkaPpRoutes");
+const utrosakRadnihSatiRoutes = require("./routes/utrosakRadnihSatiRoutes");
 
 const app = express();
 
@@ -44,6 +45,7 @@ app.use("/rn-angazovanje", rnAngazovanjeRoutes);
 app.use("/tip-proizvoda", tipProizvodaRoutes);
 app.use("/posao-proizvodnje", posaoProizvodnjeRoutes);
 app.use("/stavka-pp", stavkaPpRoutes);
+app.use("/utrosak-radnih-sati", utrosakRadnihSatiRoutes);
 
 // Default route
 app.get("/", (req, res) => {

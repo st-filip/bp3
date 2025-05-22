@@ -36,6 +36,15 @@ const DnevniciSmenaPage = () => {
     brojradnika: "",
     sifraposla: "",
   });
+  const [utroscirs, setUtroscirs] = useState([]);
+  const [tipovirs, setTipovirs] = useState([]);
+  const [newUrs, setNewUrs] = useState({
+    brojds: "",
+    jmbg: "",
+    sifratrs: "",
+    kolicina: "",
+  });
+  const [isEditingUrs, setIsEditingUrs] = useState(false);
 
   const fetchDnevniciSmena = async () => {
     const response = await fetch("http://localhost:5000/dnevnik-smene");
@@ -147,12 +156,84 @@ const DnevniciSmenaPage = () => {
     }
   };
 
+  const fetchUtroscirsByBrojDS = async (brojds) => {
+    try {
+      const response = await fetch(
+        `http://localhost:5000/utrosak-radnih-sati/${brojds}`
+      );
+      if (!response.ok) {
+        throw new Error("Greška pri dobijanju utrošaka radnih sati");
+      }
+      const data = await response.json();
+      setUtroscirs(data);
+    } catch (err) {
+      console.error(err.message);
+      setUtroscirs([]);
+    }
+  };
+
+  const fetchUrsById = async (brojds, jmbg, sifratrs) => {
+    try {
+      const response = await fetch(
+        `http://localhost:5000/utrosak-radnih-sati/${brojds}/${jmbg}/${sifratrs}`
+      );
+      if (!response.ok) {
+        throw new Error("Greška pri dobijanju utroška radnih sati");
+      }
+      const data = await response.json();
+      return data;
+    } catch (err) {
+      console.error(err.message);
+    }
+  };
+
+  const fetchTipovirs = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/tip-radnih-sati");
+      if (!response.ok) {
+        throw new Error("Greška pri dobijanju tipova radnih sati");
+      }
+      const data = await response.json();
+      setTipovirs(data);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const pivoted = [];
+
+  utroscirs.forEach((entry) => {
+    const fullName = entry.zaposleni.imeprezime;
+    let existing = pivoted.find((p) => p.zaposleni === fullName);
+
+    if (!existing) {
+      existing = {
+        zaposleni: fullName,
+        _originals: [],
+      };
+      tipovirs.forEach((tip) => {
+        existing[tip.naziv] = "";
+      });
+      pivoted.push(existing);
+    }
+
+    const nazivTipa = tipovirs.find(
+      (t) => t.sifratrs === entry.tipradnihsati.sifratrs
+    )?.naziv;
+    if (nazivTipa) {
+      existing[nazivTipa] = entry.kolicina;
+    }
+
+    existing._originals.push(entry);
+  });
+
   useEffect(() => {
     fetchDnevniciSmena();
     fetchRadniNalozi();
     fetchZaposleni();
     fetchUloge();
     fetchPoslovi();
+    fetchTipovirs();
   }, []);
 
   const handleAddSmena = async (event) => {
@@ -240,6 +321,11 @@ const DnevniciSmenaPage = () => {
       brojds: ds.brojds,
     }));
 
+    setNewUrs((prev) => ({
+      ...prev,
+      brojds: ds.brojds,
+    }));
+
     setEditBrojds(ds.brojds);
 
     try {
@@ -257,6 +343,7 @@ const DnevniciSmenaPage = () => {
     }
 
     fetchStavkeByBrojDS(ds.brojds);
+    fetchUtroscirsByBrojDS(ds.brojds);
 
     setIsAdding(true);
     setIsEditing(true);
@@ -434,7 +521,6 @@ const DnevniciSmenaPage = () => {
     setNewStavka({
       brojds: s.brojds,
       rednibroj: s.rednibroj,
-      sifraposla: s.sifraposla,
       vremeod: s.vremeod,
       vremedo: s.vremedo,
       sifraposla: s.posao.sifraposla,
@@ -571,6 +657,151 @@ const DnevniciSmenaPage = () => {
     } catch (err) {
       console.error(err.message);
       alert("Došlo je do greške pri brisanju stavke posla.");
+    }
+  };
+
+  const handleAddUrs = async () => {
+    console.log(newUrs);
+    if (isEditingUrs) {
+      console.log("Izmena");
+      try {
+        const response = await fetch(
+          `http://localhost:5000/utrosak-radnih-sati/${editBrojds}/${newUrs.jmbg}/${newUrs.sifratrs}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              kolicina: newUrs.kolicina,
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Greška pri ažuriranju utroška radnih sati");
+        }
+
+        const updatedUrs = await fetchUrsById(
+          editBrojds,
+          newUrs.jmbg,
+          newUrs.sifratrs
+        );
+        console.log(updatedUrs);
+        console.log("Previous state:", utroscirs);
+
+        setUtroscirs((prev) =>
+          prev.map((urs) =>
+            urs.brojds === newUrs.brojds &&
+            urs.zaposleni.jmbg === newUrs.jmbg &&
+            urs.tipradnihsati.sifratrs === newUrs.sifratrs
+              ? updatedUrs
+              : urs
+          )
+        );
+
+        setIsEditingUrs(false);
+        setNewUrs((prev) => ({
+          ...prev,
+          kolicina: "",
+          sifratrs: "",
+          jmbg: "",
+        }));
+        alert("Utrošak radnih sati je uspešno ažuriran.");
+      } catch (err) {
+        console.error(err.message);
+        alert("Došlo je do greške pri ažuriranju utroška radnih sati.");
+      }
+    } else {
+      try {
+        const response = await fetch(
+          `http://localhost:5000/utrosak-radnih-sati`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(newUrs),
+          }
+        );
+        if (!response.ok) {
+          throw new Error("Greška pri dodavanju utroška radnih sati");
+        }
+        const data = await response.json();
+        console.log(data);
+        const noviUrs = await fetchUrsById(
+          data.brojds,
+          data.jmbg,
+          data.sifratrs
+        );
+        console.log(noviUrs);
+        setUtroscirs((prev) => [...prev, noviUrs]);
+        console.log(utroscirs);
+        alert("Utrošak radnih sati je uspešno dodat.");
+      } catch (err) {
+        console.error(err.message);
+        alert("Došlo je do greške pri dodavanju utroška radnih sati.");
+      } finally {
+        setNewUrs((prev) => ({
+          ...prev,
+          kolicina: "",
+          sifratrs: "",
+          jmbg: "",
+        }));
+      }
+    }
+  };
+
+  const handleEditUrs = async (urs) => {
+    console.log(urs);
+    setIsEditingUrs(true);
+    setNewUrs({
+      brojds: urs.brojds,
+      kolicina: urs.kolicina,
+      sifratrs: urs.tipradnihsati.sifratrs,
+      jmbg: urs.zaposleni.jmbg,
+    });
+  };
+
+  const handleCancelEditUrs = () => {
+    setIsEditingUrs(false);
+    setNewStavka((prev) => ({
+      ...prev,
+      kolicina: "",
+      sifratrs: "",
+      jmbg: "",
+    }));
+  };
+
+  const handleDeleteUrs = async (urs) => {
+    const confirmDelete = window.confirm(
+      "Da li ste sigurni da želite da obrišete ovaj utrošak radnih sati?"
+    );
+    if (!confirmDelete) return;
+
+    try {
+      const response = await fetch(
+        `http://localhost:5000/utrosak-radnih-sati/${editBrojds}/${urs.zaposleni.jmbg}/${urs.tipradnihsati.sifratrs}`,
+        {
+          method: "DELETE",
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Greška pri brisanju utroška radnih sati");
+      }
+      setUtroscirs((prev) =>
+        prev.filter(
+          (u) =>
+            !(
+              u.brojds === urs.brojds &&
+              u.zaposleni.jmbg === urs.zaposleni.jmbg &&
+              u.tipradnihsati.sifratrs === urs.tipradnihsati.sifratrs
+            )
+        )
+      );
+
+      alert("Utrošak radnih sati je uspešno obrisan.");
+    } catch (err) {
+      console.error(err.message);
+      alert("Došlo je do greške pri brisanju utroška radnih sati.");
     }
   };
 
@@ -779,11 +1010,9 @@ const DnevniciSmenaPage = () => {
                                   handleEditAngazovanje(angazovanje)
                                 }
                                 variant="info"
-                                text="Izmeni"
                                 className="mr-2"
                               />
                               <Button
-                                text="Obriši"
                                 icon={<FaTrash size={20} />}
                                 onClick={() =>
                                   handleDeleteAngazovanje(
@@ -802,6 +1031,170 @@ const DnevniciSmenaPage = () => {
                 ) : (
                   <div className=" text-gray-500 text-sm">
                     Trenutno ne postoje angažovanja.
+                  </div>
+                )}
+              </div>
+
+              {/* URS */}
+
+              <div className="bg-white p-6 rounded-lg shadow-md mb-6">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleAddUrs();
+                  }}
+                >
+                  <h2 className="text-xl font-semibold mb-4">
+                    {isEditingUrs
+                      ? "Izmeni utrošak radnih sati"
+                      : "Dodaj novi utrošak radnih sati"}
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {!isEditingUrs && (
+                      <>
+                        <Select
+                          name="jmbg"
+                          value={newUrs.jmbg}
+                          onChange={(e) =>
+                            setNewUrs((prev) => ({
+                              ...prev,
+                              jmbg: e.target.value,
+                            }))
+                          }
+                          label="Zaposleni"
+                          option1="zaposlenog"
+                          options={zaposleni.map((z) => ({
+                            value: z.jmbg,
+                            label: z.imeprezime,
+                          }))}
+                          required
+                        />
+                        <Select
+                          name="sifratrs"
+                          value={newUrs.sifratrs}
+                          onChange={(e) =>
+                            setNewUrs((prev) => ({
+                              ...prev,
+                              sifratrs: e.target.value,
+                            }))
+                          }
+                          label="Tip radnih sati"
+                          options={tipovirs.map((t) => ({
+                            value: t.sifratrs,
+                            label: t.naziv,
+                          }))}
+                          required
+                        />
+                      </>
+                    )}
+                    <Input
+                      type="number"
+                      name="kolicina"
+                      value={newUrs.kolicina}
+                      onChange={(e) =>
+                        setNewUrs((prev) => ({
+                          ...prev,
+                          kolicina: e.target.value,
+                        }))
+                      }
+                      label="Količina (sati)"
+                      required
+                    />
+                  </div>
+                  <div className="mt-4 flex">
+                    {isEditingUrs ? (
+                      <>
+                        <Button
+                          type="submit"
+                          icon={<FaEdit size={20} />}
+                          variant="success"
+                          className="mr-2"
+                        />
+                        <Button
+                          type="button"
+                          icon={<FaTimes size={20} />}
+                          variant="danger"
+                          onClick={handleCancelEditUrs}
+                        />
+                      </>
+                    ) : (
+                      <Button
+                        type="submit"
+                        icon={<FaPlus size={20} />}
+                        variant="success"
+                      />
+                    )}
+                  </div>
+                </form>
+
+                <h2 className="text-xl font-semibold my-4">
+                  Utrošci radnih sati
+                </h2>
+                {pivoted.length > 0 ? (
+                  <div className="overflow-x-auto shadow-md rounded-xl border border-gray-300">
+                    <table className="w-full text-sm text-left text-gray-700">
+                      <thead className="bg-gray-100 text-gray-900 uppercase text-xs">
+                        <tr>
+                          <th className="px-4 py-3 border-b">Zaposleni</th>
+                          {tipovirs.map((tip) => (
+                            <th
+                              key={tip.sifratrs}
+                              className="px-4 py-3 border-b"
+                            >
+                              {tip.naziv}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {pivoted.map((row, idx) => (
+                          <tr
+                            key={idx}
+                            className={`${
+                              idx % 2 === 0 ? "bg-white" : "bg-gray-50"
+                            } hover:bg-gray-100 transition-colors`}
+                          >
+                            <td className="px-4 py-3">{row.zaposleni}</td>
+                            {tipovirs.map((tip) => {
+                              const value = row[tip.naziv];
+                              const entry = row._originals.find(
+                                (e) => e.tipradnihsati.sifratrs === tip.sifratrs
+                              );
+
+                              return (
+                                <td key={tip.sifratrs} className="px-4 py-3">
+                                  {value !== "0" &&
+                                  value !== 0 &&
+                                  value !== "" ? (
+                                    <div className="flex items-center justify-between">
+                                      <span>{value}</span>
+                                      <div className="flex gap-1 ml-2">
+                                        <Button
+                                          icon={<FaEdit size={16} />}
+                                          onClick={() => handleEditUrs(entry)}
+                                          variant="info"
+                                          size="sm"
+                                        />
+                                        <Button
+                                          icon={<FaTrash size={16} />}
+                                          onClick={() => handleDeleteUrs(entry)}
+                                          variant="danger"
+                                          size="sm"
+                                        />
+                                      </div>
+                                    </div>
+                                  ) : null}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="text-gray-500 text-sm">
+                    Trenutno ne postoje uneti utrošci radnih sati.
                   </div>
                 )}
               </div>
@@ -951,11 +1344,9 @@ const DnevniciSmenaPage = () => {
                                 icon={<FaEdit size={20} />}
                                 onClick={() => handleEditStavka(stavka)}
                                 variant="info"
-                                text="Izmeni"
                                 className="mr-2"
                               />
                               <Button
-                                text="Obriši"
                                 icon={<FaTrash size={20} />}
                                 onClick={() =>
                                   handleDeleteStavka(stavka.rednibroj)

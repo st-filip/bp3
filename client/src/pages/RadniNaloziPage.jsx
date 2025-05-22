@@ -644,7 +644,6 @@ const RadniNaloziPage = () => {
                           </td>
                           <td className="px-4 py-3 text-right">
                             <Button
-                              text="Obriši"
                               icon={<FaTrash size={20} />}
                               onClick={() =>
                                 handleDeleteAngazovanje(

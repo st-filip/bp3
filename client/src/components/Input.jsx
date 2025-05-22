@@ -34,7 +34,7 @@ const Input = ({
 };
 
 Input.propTypes = {
-  type: PropTypes.oneOf(["text", "number", "date"]),
+  type: PropTypes.oneOf(["text", "number", "date", "time"]),
   name: PropTypes.string.isRequired,
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
   onChange: PropTypes.func.isRequired,
