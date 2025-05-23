@@ -108,6 +108,26 @@ const ZaposleniController = {
         .send({ message: "Greška pri dodavanju tipa zaposlenog." });
     }
   },
+
+  searchByConditions: async (req, res) => {
+    try {
+      const { imeprezime, nazivtipazaposlenog } = req.query;
+
+      if (!imeprezime && !nazivtipazaposlenog) {
+        const zaposleni = await ZaposleniService.getAll();
+        return res.json(zaposleni);
+      }
+
+      const zaposleni = await ZaposleniService.searchByConditions(
+        imeprezime,
+        nazivtipazaposlenog
+      );
+      res.json(zaposleni);
+    } catch (error) {
+      console.error(error.message);
+      res.status(500).send(error.message);
+    }
+  },
 };
 
 module.exports = ZaposleniController;

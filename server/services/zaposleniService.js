@@ -53,6 +53,33 @@ const ZaposleniService = {
       console.error("Greška pri kreiranju tipa zaposlenog:", error.message);
     }
   },
+
+  searchByConditions: async (imeprezime, nazivtipazaposlenog) => {
+    const values = [];
+    let conditions = [`imeprezime NOT ILIKE 'Ime%'`];
+
+    if (imeprezime) {
+      values.push(`%${imeprezime}%`);
+      conditions.push(`imeprezime ILIKE $${values.length}`);
+    }
+
+    if (nazivtipazaposlenog) {
+      values.push(nazivtipazaposlenog);
+      conditions.push(`nazivtipazaposlenog = $${values.length}`);
+    }
+
+    const whereClause = conditions.length
+      ? `WHERE ${conditions.join(" AND ")}`
+      : "";
+
+    const result = await pool.query(
+      `SELECT * FROM zaposleni
+    ${whereClause}`,
+      values
+    );
+
+    return result.rows;
+  },
 };
 
 module.exports = ZaposleniService;

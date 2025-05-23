@@ -13,11 +13,13 @@ const ZaposleniPage = () => {
     jmbg: "",
     nazivtipazaposlenog: "",
   });
-  const [Tipovi, setTipovi] = useState([]);
+  const [tipovi, setTipovi] = useState([]);
   const [newType, setNewType] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [editingZaposleniId, setEditingZaposleniId] = useState(null);
-  const [searchQuery, setSearchQuery] = useState(""); // Dodajemo stanje za pretragu
+  const [searchImePrezime, setSearchImePrezime] = useState("");
+  const [selectedNazivTipaZaposlenog, setSelectedNazivTipaZaposlenog] =
+    useState("");
 
   const fetchZaposleni = async () => {
     try {
@@ -27,7 +29,7 @@ const ZaposleniPage = () => {
       }
       const data = await response.json();
       setZaposleni(data);
-      setFilteredZaposleni(data); // Početno filtriranje sa svim zaposlenima
+      setFilteredZaposleni(data);
     } catch (err) {
       console.error(err.message);
     }
@@ -115,10 +117,14 @@ const ZaposleniPage = () => {
         }
         const data = await response.json();
         setZaposleni((prev) => [...prev, data]);
-        const lowercasedQuery = searchQuery.toLowerCase();
-        if (data.imeprezime.toLowerCase().includes(lowercasedQuery)) {
-          setFilteredZaposleni((prev) => [...prev, data]);
-        }
+        handleSearch();
+        setIsAdding(false);
+        setIsEditing(false);
+        setnewZaposleni({
+          imeprezime: "",
+          jmbg: "",
+          nazivtipazaposlenog: "",
+        });
         alert("Zaposleni je uspešno dodat.");
       }
     } catch (err) {
@@ -180,13 +186,32 @@ const ZaposleniPage = () => {
     }));
   };
 
-  // Funkcija za pretragu
-  const handleSearch = () => {
-    const lowercasedQuery = searchQuery.toLowerCase();
-    const filtered = zaposleni.filter((zaposleni) =>
-      zaposleni.imeprezime.toLowerCase().includes(lowercasedQuery)
-    );
-    setFilteredZaposleni(filtered);
+  const handleSearch = async () => {
+    try {
+      let searchUrl = "http://localhost:5000/zaposleni/search?";
+      if (searchImePrezime) {
+        searchUrl += `imeprezime=${encodeURIComponent(searchImePrezime)}&`;
+      }
+      if (selectedNazivTipaZaposlenog) {
+        searchUrl += `nazivtipazaposlenog=${encodeURIComponent(
+          selectedNazivTipaZaposlenog
+        )}&`;
+      }
+
+      if (searchUrl.endsWith("&")) {
+        searchUrl = searchUrl.slice(0, -1);
+      }
+
+      const response = await fetch(searchUrl);
+      if (!response.ok) {
+        throw new Error("Greška pri pretrazi zaposlenih");
+      }
+      const data = await response.json();
+      setFilteredZaposleni(data);
+    } catch (err) {
+      console.error(err.message);
+      alert("Došlo je do greške pri pretrazi.");
+    }
   };
 
   return (
@@ -199,8 +224,18 @@ const ZaposleniPage = () => {
             name="imePrezimeSearch"
             type="text"
             placeholder="Ime i prezime"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            value={searchImePrezime}
+            onChange={(e) => setSearchImePrezime(e.target.value)}
+          />
+          <Select
+            name="nazivTipaZaposlenogSearch"
+            value={selectedNazivTipaZaposlenog}
+            onChange={(e) => setSelectedNazivTipaZaposlenog(e.target.value)}
+            option1="tip zaposlenog"
+            options={tipovi.map((tip) => ({
+              value: tip,
+              label: tip,
+            }))}
           />
           <Button
             icon={<FaSearch size={20} />}
@@ -283,7 +318,7 @@ const ZaposleniPage = () => {
                 value={newZaposleni.nazivtipazaposlenog}
                 onChange={handleInputChange}
                 label="Tip zaposlenog"
-                options={Tipovi.map((tip) => ({
+                options={tipovi.map((tip) => ({
                   value: tip,
                   label: tip,
                 }))}

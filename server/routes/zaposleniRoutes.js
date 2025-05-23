@@ -4,6 +4,7 @@ const ZaposleniController = require("../controllers/zaposleniController");
 
 router.post("/", ZaposleniController.create);
 router.get("/", ZaposleniController.getAll);
+router.get("/search", ZaposleniController.searchByConditions);
 router.get("/tip-zaposlenog", ZaposleniController.getTipoviZaposlenih);
 router.get("/:jmbg", ZaposleniController.getById);
 router.put("/:jmbg", ZaposleniController.update);
