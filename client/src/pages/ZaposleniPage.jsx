@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Button from "../components/Button";
 import Input from "../components/Input";
 import Select from "../components/Select";
+import Modal from "../components/Modal";
 import { FaPlus, FaTimes, FaTrash, FaEdit, FaSearch } from "react-icons/fa";
 
 const ZaposleniPage = () => {
@@ -20,6 +21,13 @@ const ZaposleniPage = () => {
   const [searchImePrezime, setSearchImePrezime] = useState("");
   const [selectedNazivTipaZaposlenog, setSelectedNazivTipaZaposlenog] =
     useState("");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalData, setModalData] = useState({
+    title: "",
+    message: "",
+    onConfirm: null,
+    onCancel: null,
+  });
 
   const fetchZaposleni = async () => {
     try {
@@ -67,16 +75,26 @@ const ZaposleniPage = () => {
         }
       );
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Greška pri dodavanju tipa zaposlenog. ${errorText}`);
+        const errorJson = await response.json();
+        throw new Error(errorJson.message || "Došlo je do greške.");
       }
       const data = await response.json();
       fetchNaziviTipaZaposlenog();
       setNewType("");
-      alert("Tip zaposlenog je uspešno dodat.");
+      setModalData({
+        title: "Uspeh",
+        message: "Tip zaposlenog je uspešno dodat.",
+        onConfirm: () => setModalOpen(false),
+      });
+      setModalOpen(true);
     } catch (err) {
       console.error(err.message);
-      alert(err.message);
+      setModalData({
+        title: "Greška",
+        message: err.message,
+        onConfirm: () => setModalOpen(false),
+      });
+      setModalOpen(true);
     }
   };
 
@@ -93,7 +111,8 @@ const ZaposleniPage = () => {
           }
         );
         if (!response.ok) {
-          throw new Error("Greška pri ažuriranju zaposlenog");
+          const errorText = await response.text();
+          throw new Error(`Greška pri ažuriranju zaposlenog. ${errorText}`);
         }
 
         setZaposleni((prev) =>
@@ -106,7 +125,12 @@ const ZaposleniPage = () => {
             zaposleni.jmbg === editingZaposleniId ? newZaposleni : zaposleni
           )
         );
-        alert("Zaposleni je uspešno ažuriran.");
+        setModalData({
+          title: "Uspeh",
+          message: "Zaposleni je uspešno ažuriran.",
+          onConfirm: () => setModalOpen(false),
+        });
+        setModalOpen(true);
       } else {
         const response = await fetch("http://localhost:5000/zaposleni", {
           method: "POST",
@@ -127,20 +151,38 @@ const ZaposleniPage = () => {
           jmbg: "",
           nazivtipazaposlenog: "",
         });
-        alert("Zaposleni je uspešno dodat.");
+        setModalData({
+          title: "Uspeh",
+          message: "Zaposleni je uspešno dodat.",
+          onConfirm: () => setModalOpen(false),
+        });
+        setModalOpen(true);
       }
     } catch (err) {
       console.error(err.message);
-      alert(err.message);
+      setModalData({
+        title: "Greška",
+        message: err.message,
+        onConfirm: () => setModalOpen(false),
+      });
+      setModalOpen(true);
     }
   };
 
-  const handleDelete = async (id) => {
-    const confirmDelete = window.confirm(
-      "Da li ste sigurni da želite da obrišete ovog zaposlenog?"
-    );
-    if (!confirmDelete) return;
+  const handleDelete = (id) => {
+    setModalData({
+      title: "Potvrda brisanja",
+      message: "Da li ste sigurni da želite da obrišete ovog zaposlenog?",
+      onConfirm: () => {
+        deleteZaposleni(id);
+        setModalOpen(false);
+      },
+      onCancel: () => setModalOpen(false),
+    });
+    setModalOpen(true);
+  };
 
+  const deleteZaposleni = async (id) => {
     try {
       const response = await fetch(`http://localhost:5000/zaposleni/${id}`, {
         method: "DELETE",
@@ -153,10 +195,20 @@ const ZaposleniPage = () => {
       setFilteredZaposleni((prev) =>
         prev.filter((zaposleni) => zaposleni.jmbg !== id)
       );
-      alert("Zaposleni je uspešno obrisan.");
+      setModalData({
+        title: "Uspeh",
+        message: "Zaposleni je uspešno obrisan.",
+        onConfirm: () => setModalOpen(false),
+      });
+      setModalOpen(true);
     } catch (err) {
       console.error(err.message);
-      alert(err.message);
+      setModalData({
+        title: "Greška",
+        message: err.message,
+        onConfirm: () => setModalOpen(false),
+      });
+      setModalOpen(true);
     }
   };
 
@@ -214,7 +266,12 @@ const ZaposleniPage = () => {
       setFilteredZaposleni(data);
     } catch (err) {
       console.error(err.message);
-      alert(err.message);
+      setModalData({
+        title: "Greška",
+        message: err.message,
+        onConfirm: () => setModalOpen(false),
+      });
+      setModalOpen(true);
     }
   };
 
@@ -379,6 +436,13 @@ const ZaposleniPage = () => {
           </tbody>
         </table>
       </div>
+      <Modal
+        isOpen={modalOpen}
+        title={modalData.title}
+        message={modalData.message}
+        onConfirm={modalData.onConfirm}
+        onCancel={modalData.onCancel}
+      />
     </div>
   );
 };

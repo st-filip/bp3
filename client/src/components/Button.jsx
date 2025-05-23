@@ -18,6 +18,7 @@ const Button = ({
     warning:
       "bg-yellow-500 text-black hover:bg-yellow-400 focus:ring-yellow-300",
     info: "bg-blue-500 text-white hover:bg-blue-400 focus:ring-blue-300",
+    gray: "bg-gray-500 text-white hover:bg-gray-400 focus:ring-gray-200",
   };
 
   const styles = `${baseStyles} ${

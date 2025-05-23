@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Button from "../components/Button";
 import Input from "../components/Input";
 import Select from "../components/Select";
+import Modal from "../components/Modal";
 import { FaPlus, FaEdit, FaTrash, FaTimes } from "react-icons/fa";
 
 const DnevniciSmenaPage = () => {
@@ -46,6 +47,13 @@ const DnevniciSmenaPage = () => {
     kolicina: "",
   });
   const [isEditingUrs, setIsEditingUrs] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalData, setModalData] = useState({
+    title: "",
+    message: "",
+    onConfirm: null,
+    onCancel: null,
+  });
 
   const fetchDnevniciSmena = async () => {
     const response = await fetch("http://localhost:5000/dnevnik-smene");
@@ -239,13 +247,6 @@ const DnevniciSmenaPage = () => {
 
   const handleAddSmena = async (event) => {
     event.preventDefault();
-    /*const selectedNalog = radniNalozi.find(
-      (nalog) => nalog.brojrn == newDnevnikSmene.brojrn
-    );
-    await setNewDnevnikSmene({
-      ...newDnevnikSmene,
-      sifrapogona: selectedNalog.proizvodnipogon.sifrapogona,
-    });*/
     try {
       if (isEditing) {
         const response = await fetch(
@@ -271,8 +272,12 @@ const DnevniciSmenaPage = () => {
             ds.brojds === editBrojds ? updatedDnevnikSmene : ds
           )
         );
-
-        alert("Dnevnik smene je uspešno ažuriran.");
+        setModalData({
+          title: "Uspeh",
+          message: "Dnevnik smene je uspešno ažuriran.",
+          onConfirm: () => setModalOpen(false),
+        });
+        setModalOpen(true);
         const selectedNalog = radniNalozi.find(
           (nalog) => nalog.brojrn == newDnevnikSmene.brojrn
         );
@@ -299,7 +304,12 @@ const DnevniciSmenaPage = () => {
 
         setDnevniciSmena((prev) => [...prev, addedDnevnik]);
 
-        alert("Dnevnik smene je uspešno dodat.");
+        setModalData({
+          title: "Uspeh",
+          message: "Dnevnik smene je uspešno dodat.",
+          onConfirm: () => setModalOpen(false),
+        });
+        setModalOpen(true);
 
         setIsAdding(false);
         setIsEditing(false);
@@ -307,7 +317,12 @@ const DnevniciSmenaPage = () => {
       }
     } catch (err) {
       console.error(err.message);
-      alert(err.message);
+      setModalData({
+        title: "Greška",
+        message: err.message,
+        onConfirm: () => setModalOpen(false),
+      });
+      setModalOpen(true);
     }
   };
 
@@ -348,7 +363,12 @@ const DnevniciSmenaPage = () => {
       setAngazovanja(data);
     } catch (err) {
       console.error(err.message);
-      alert(err.message);
+      setModalData({
+        title: "Greška",
+        message: err.message,
+        onConfirm: () => setModalOpen(false),
+      });
+      setModalOpen(true);
     }
 
     fetchStavkeByBrojDS(ds.brojds);
@@ -358,12 +378,20 @@ const DnevniciSmenaPage = () => {
     setIsEditing(true);
   };
 
-  const handleDelete = async (brojds) => {
-    const confirmDelete = window.confirm(
-      "Da li ste sigurni da želite da obrišete ovaj dnevnik smene?"
-    );
-    if (!confirmDelete) return;
+  const handleDelete = (brojds) => {
+    setModalData({
+      title: "Potvrda brisanja",
+      message: "Da li ste sigurni da želite da obrišete ovaj dnevnik smene?",
+      onConfirm: () => {
+        deleteDnevnikSmene(brojds);
+        setModalOpen(false);
+      },
+      onCancel: () => setModalOpen(false),
+    });
+    setModalOpen(true);
+  };
 
+  const deleteDnevnikSmene = async (brojds) => {
     try {
       const response = await fetch(
         `http://localhost:5000/dnevnik-smene/${brojds}`,
@@ -378,10 +406,20 @@ const DnevniciSmenaPage = () => {
       setDnevniciSmena((prev) =>
         prev.filter((dnevnikSmene) => dnevnikSmene.brojds !== brojds)
       );
-      alert("Dnevnik smene je uspešno obrisan.");
+      setModalData({
+        title: "Uspeh",
+        message: "Dnevnik smene je uspešno obrisan.",
+        onConfirm: () => setModalOpen(false),
+      });
+      setModalOpen(true);
     } catch (err) {
       console.error(err.message);
-      alert(err.message);
+      setModalData({
+        title: "Greška",
+        message: err.message,
+        onConfirm: () => setModalOpen(false),
+      });
+      setModalOpen(true);
     }
   };
 
@@ -417,12 +455,20 @@ const DnevniciSmenaPage = () => {
     return newDate.toISOString().split("T")[0];
   };
 
-  const handleDeleteAngazovanje = async (sifrauloge, jmbg) => {
-    const confirmDelete = window.confirm(
-      "Da li ste sigurni da želite da obrišete ovo angažovanje?"
-    );
-    if (!confirmDelete) return;
+  const handleDeleteAngazovanje = (sifrauloge, jmbg) => {
+    setModalData({
+      title: "Potvrda brisanja",
+      message: "Da li ste sigurni da želite da obrišete ovo angažovanje?",
+      onConfirm: () => {
+        deleteAngazovanje(sifrauloge, jmbg);
+        setModalOpen(false);
+      },
+      onCancel: () => setModalOpen(false),
+    });
+    setModalOpen(true);
+  };
 
+  const deleteAngazovanje = async (sifrauloge, jmbg) => {
     try {
       const response = await fetch(
         `http://localhost:5000/ds-angazovanje/${editBrojds}/${jmbg}/${sifrauloge}`,
@@ -439,10 +485,20 @@ const DnevniciSmenaPage = () => {
           (a) => a.uloga.sifrauloge !== sifrauloge && a.zaposleni.jmbg !== jmbg
         )
       );
-      alert("Angažovanje je uspešno obrisano.");
+      setModalData({
+        title: "Uspeh",
+        message: "Angažovanje je uspešno obrisano.",
+        onConfirm: () => setModalOpen(false),
+      });
+      setModalOpen(true);
     } catch (err) {
       console.error(err.message);
-      alert(err.message);
+      setModalData({
+        title: "Greška",
+        message: err.message,
+        onConfirm: () => setModalOpen(false),
+      });
+      setModalOpen(true);
     }
   };
 
@@ -491,10 +547,20 @@ const DnevniciSmenaPage = () => {
           napomena: "",
           imeprezime: "",
         }));
-        alert("Angažovanje je uspešno ažurirano.");
+        setModalData({
+          title: "Uspeh",
+          message: "Angažovanje je uspešno ažurirano.",
+          onConfirm: () => setModalOpen(false),
+        });
+        setModalOpen(true);
       } catch (err) {
         console.error(err.message);
-        alert(err.message);
+        setModalData({
+          title: "Greška",
+          message: err.message,
+          onConfirm: () => setModalOpen(false),
+        });
+        setModalOpen(true);
       }
     } else {
       try {
@@ -520,10 +586,20 @@ const DnevniciSmenaPage = () => {
           napomena: "",
           imeprezime: "",
         });
-        alert("Angažovanje je uspešno dodato.");
+        setModalData({
+          title: "Uspeh",
+          message: "Angažovanje je uspešno dodato.",
+          onConfirm: () => setModalOpen(false),
+        });
+        setModalOpen(true);
       } catch (err) {
         console.error(err.message);
-        alert(err.message);
+        setModalData({
+          title: "Greška",
+          message: err.message,
+          onConfirm: () => setModalOpen(false),
+        });
+        setModalOpen(true);
       }
     }
   };
@@ -627,10 +703,20 @@ const DnevniciSmenaPage = () => {
           sifraposla: "",
           brojradnika: "",
         }));
-        alert("Stavka posla je uspešno ažurirana.");
+        setModalData({
+          title: "Uspeh",
+          message: "Stavka posla je uspešno ažurirana.",
+          onConfirm: () => setModalOpen(false),
+        });
+        setModalOpen(true);
       } catch (err) {
         console.error(err.message);
-        alert(err.message);
+        setModalData({
+          title: "Greška",
+          message: err.message,
+          onConfirm: () => setModalOpen(false),
+        });
+        setModalOpen(true);
       }
     } else {
       try {
@@ -648,10 +734,20 @@ const DnevniciSmenaPage = () => {
         console.log(novaStavka);
         setStavke((prev) => [...prev, novaStavka]);
         console.log(stavke);
-        alert("Stavka je uspešno dodata.");
+        setModalData({
+          title: "Uspeh",
+          message: "Stavka posla je uspešno dodata.",
+          onConfirm: () => setModalOpen(false),
+        });
+        setModalOpen(true);
       } catch (err) {
         console.error(err.message);
-        alert(err.message);
+        setModalData({
+          title: "Greška",
+          message: err.message,
+          onConfirm: () => setModalOpen(false),
+        });
+        setModalOpen(true);
       } finally {
         setNewStavka((prev) => ({
           ...prev,
@@ -665,12 +761,20 @@ const DnevniciSmenaPage = () => {
     }
   };
 
-  const handleDeleteStavka = async (rednibroj) => {
-    const confirmDelete = window.confirm(
-      "Da li ste sigurni da želite da obrišete ovu stavku posla?"
-    );
-    if (!confirmDelete) return;
+  const handleDeleteStavka = (rednibroj) => {
+    setModalData({
+      title: "Potvrda brisanja",
+      message: "Da li ste sigurni da želite da obrišete ovu stavku posla?",
+      onConfirm: () => {
+        deleteStavka(rednibroj);
+        setModalOpen(false);
+      },
+      onCancel: () => setModalOpen(false),
+    });
+    setModalOpen(true);
+  };
 
+  const deleteStavka = async (rednibroj) => {
     try {
       const response = await fetch(
         `http://localhost:5000/stavka-pp/${editBrojds}/${rednibroj}`,
@@ -683,10 +787,20 @@ const DnevniciSmenaPage = () => {
         throw new Error(`Greška pri brisanju stavke posla. ${errorText}`);
       }
       setStavke((prev) => prev.filter((s) => s.rednibroj !== rednibroj));
-      alert("Stavka posla je uspešno obrisana.");
+      setModalData({
+        title: "Uspeh",
+        message: "Stavka posla je uspešno obrisana.",
+        onConfirm: () => setModalOpen(false),
+      });
+      setModalOpen(true);
     } catch (err) {
       console.error(err.message);
-      alert(err.message);
+      setModalData({
+        title: "Greška",
+        message: err.message,
+        onConfirm: () => setModalOpen(false),
+      });
+      setModalOpen(true);
     }
   };
 
@@ -740,10 +854,20 @@ const DnevniciSmenaPage = () => {
           sifratrs: "",
           jmbg: "",
         }));
-        alert("Utrošak radnih sati je uspešno ažuriran.");
+        setModalData({
+          title: "Uspeh",
+          message: "Utrošak radnih sati je uspešno ažuriran.",
+          onConfirm: () => setModalOpen(false),
+        });
+        setModalOpen(true);
       } catch (err) {
         console.error(err.message);
-        alert(err.message);
+        setModalData({
+          title: "Greška",
+          message: err.message,
+          onConfirm: () => setModalOpen(false),
+        });
+        setModalOpen(true);
       }
     } else {
       try {
@@ -771,10 +895,20 @@ const DnevniciSmenaPage = () => {
         console.log(noviUrs);
         setUtroscirs((prev) => [...prev, noviUrs]);
         console.log(utroscirs);
-        alert("Utrošak radnih sati je uspešno dodat.");
+        setModalData({
+          title: "Uspeh",
+          message: "Utrošak radnih sati je uspešno dodat.",
+          onConfirm: () => setModalOpen(false),
+        });
+        setModalOpen(true);
       } catch (err) {
         console.error(err.message);
-        alert(err.message);
+        setModalData({
+          title: "Greška",
+          message: err.message,
+          onConfirm: () => setModalOpen(false),
+        });
+        setModalOpen(true);
       } finally {
         setNewUrs((prev) => ({
           ...prev,
@@ -807,12 +941,21 @@ const DnevniciSmenaPage = () => {
     }));
   };
 
-  const handleDeleteUrs = async (urs) => {
-    const confirmDelete = window.confirm(
-      "Da li ste sigurni da želite da obrišete ovaj utrošak radnih sati?"
-    );
-    if (!confirmDelete) return;
+  const handleDeleteUrs = (urs) => {
+    setModalData({
+      title: "Potvrda brisanja",
+      message:
+        "Da li ste sigurni da želite da obrišete ovaj utrošak radnih sati?",
+      onConfirm: () => {
+        deleteUrs(urs);
+        setModalOpen(false);
+      },
+      onCancel: () => setModalOpen(false),
+    });
+    setModalOpen(true);
+  };
 
+  const deleteUrs = async (urs) => {
     try {
       const response = await fetch(
         `http://localhost:5000/utrosak-radnih-sati/${editBrojds}/${urs.zaposleni.jmbg}/${urs.tipradnihsati.sifratrs}`,
@@ -837,10 +980,20 @@ const DnevniciSmenaPage = () => {
         )
       );
 
-      alert("Utrošak radnih sati je uspešno obrisan.");
+      setModalData({
+        title: "Uspeh",
+        message: "Utrošak radnih sati je uspešno obrisan.",
+        onConfirm: () => setModalOpen(false),
+      });
+      setModalOpen(true);
     } catch (err) {
       console.error(err.message);
-      alert(err.message);
+      setModalData({
+        title: "Greška",
+        message: err.message,
+        onConfirm: () => setModalOpen(false),
+      });
+      setModalOpen(true);
     }
   };
 
@@ -1484,6 +1637,13 @@ const DnevniciSmenaPage = () => {
           </table>
         </div>
       )}
+      <Modal
+        isOpen={modalOpen}
+        title={modalData.title}
+        message={modalData.message}
+        onConfirm={modalData.onConfirm}
+        onCancel={modalData.onCancel}
+      />
     </div>
   );
 };

@@ -3,6 +3,7 @@ import RadniNalogCard from "../components/RadniNalogCard";
 import Button from "../components/Button";
 import Input from "../components/Input";
 import Select from "../components/Select";
+import Modal from "../components/Modal";
 import { FaPlus, FaTimes, FaTrash, FaEdit } from "react-icons/fa";
 
 const RadniNaloziPage = () => {
@@ -39,6 +40,13 @@ const RadniNaloziPage = () => {
   const [zaposleni, setZaposleni] = useState([]);
   const [uloge, setUloge] = useState([]);
   const [us, setUs] = useState(undefined);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalData, setModalData] = useState({
+    title: "",
+    message: "",
+    onConfirm: null,
+    onCancel: null,
+  });
 
   const fetchRadniNalozi = async () => {
     try {
@@ -212,31 +220,55 @@ const RadniNaloziPage = () => {
       setAngazovanja(data);
     } catch (err) {
       console.error(err.message);
-      alert("Došlo je do greške pri dobijanju angažovanja.");
+      setModalData({
+        title: "Greška",
+        message: err.message,
+        onConfirm: () => setModalOpen(false),
+      });
+      setModalOpen(true);
     }
 
     setIsAdding(true);
     setIsEditing(true);
   };
 
-  const handleDelete = async (id) => {
-    const confirmDelete = window.confirm(
-      "Da li ste sigurni da želite da obrišete ovaj radni nalog?"
-    );
-    if (!confirmDelete) return;
+  const handleDelete = (id) => {
+    setModalData({
+      title: "Potvrda brisanja",
+      message: "Da li ste sigurni da želite da obrišete ovaj radni nalog?",
+      onConfirm: () => {
+        deleteNalog(id);
+        setModalOpen(false);
+      },
+      onCancel: () => setModalOpen(false),
+    });
+    setModalOpen(true);
+  };
 
+  const deleteNalog = async (id) => {
     try {
       const response = await fetch(`http://localhost:5000/radni-nalog/${id}`, {
         method: "DELETE",
       });
       if (!response.ok) {
-        throw new Error("Greška pri brisanju radnog naloga");
+        const errorText = await response.text();
+        throw new Error(`Greška pri brisanju radnog naloga. ${errorText}`);
       }
       setRadniNalozi((prev) => prev.filter((nalog) => nalog.brojrn !== id));
-      alert("Radni nalog je uspešno obrisan.");
+      setModalData({
+        title: "Uspeh",
+        message: "Radni nalog je uspešno obrisan.",
+        onConfirm: () => setModalOpen(false),
+      });
+      setModalOpen(true);
     } catch (err) {
       console.error(err.message);
-      alert("Došlo je do greške pri brisanju.");
+      setModalData({
+        title: "Greška",
+        message: err.message,
+        onConfirm: () => setModalOpen(false),
+      });
+      setModalOpen(true);
     }
   };
 
@@ -276,7 +308,12 @@ const RadniNaloziPage = () => {
           )
         );
 
-        alert("Radni nalog je uspešno ažuriran.");
+        setModalData({
+          title: "Uspeh",
+          message: "Radni nalog je uspešno ažuriran.",
+          onConfirm: () => setModalOpen(false),
+        });
+        setModalOpen(true);
       } else {
         if (newNalog.ukupnosati == 0) {
           newNalog.ukupnosati = undefined;
@@ -301,7 +338,12 @@ const RadniNaloziPage = () => {
 
         setRadniNalozi((prev) => [...prev, updatedNalog]);
 
-        alert("Radni nalog je uspešno dodat.");
+        setModalData({
+          title: "Uspeh",
+          message: "Radni nalog je uspešno dodat.",
+          onConfirm: () => setModalOpen(false),
+        });
+        setModalOpen(true);
 
         setIsAdding(false);
         setIsEditing(false);
@@ -322,7 +364,12 @@ const RadniNaloziPage = () => {
       }
     } catch (err) {
       console.error(err.message);
-      alert(err.message);
+      setModalData({
+        title: "Greška",
+        message: err.message,
+        onConfirm: () => setModalOpen(false),
+      });
+      setModalOpen(true);
       setNewNalog((prev) => ({
         ...prev,
         ukupnosati: us || 0,
@@ -362,12 +409,20 @@ const RadniNaloziPage = () => {
     }));
   };
 
-  const handleDeleteAngazovanje = async (sifrauloge, jmbg) => {
-    const confirmDelete = window.confirm(
-      "Da li ste sigurni da želite da obrišete ovo angažovanje?"
-    );
-    if (!confirmDelete) return;
+  const handleDeleteAngazovanje = (sifrauloge, jmbg) => {
+    setModalData({
+      title: "Potvrda brisanja",
+      message: "Da li ste sigurni da želite da obrišete ovo angažovanje?",
+      onConfirm: () => {
+        deleteAngazovanje(sifrauloge, jmbg);
+        setModalOpen(false);
+      },
+      onCancel: () => setModalOpen(false),
+    });
+    setModalOpen(true);
+  };
 
+  const deleteAngazovanje = async (sifrauloge, jmbg) => {
     try {
       const response = await fetch(
         `http://localhost:5000/rn-angazovanje/${editBrojrn}/${jmbg}/${sifrauloge}`,
@@ -384,10 +439,20 @@ const RadniNaloziPage = () => {
           (a) => a.uloga.sifrauloge !== sifrauloge && a.zaposleni.jmbg !== jmbg
         )
       );
-      alert("Angažovanje je uspešno obrisano.");
+      setModalData({
+        title: "Uspeh",
+        message: "Angažovanje je uspešno obrisano.",
+        onConfirm: () => setModalOpen(false),
+      });
+      setModalOpen(true);
     } catch (err) {
       console.error(err.message);
-      alert(err.message);
+      setModalData({
+        title: "Greška",
+        message: err.message,
+        onConfirm: () => setModalOpen(false),
+      });
+      setModalOpen(true);
     }
   };
 
@@ -410,10 +475,20 @@ const RadniNaloziPage = () => {
       );
       setAngazovanja((prev) => [...prev, novoRNAngazovanje]);
       setNovoAngazovanje({ sifrauloge: "", jmbg: "" });
-      alert("Angažovanje je uspešno dodato.");
+      setModalData({
+        title: "Uspeh",
+        message: "Angažovanje je uspešno dodato.",
+        onConfirm: () => setModalOpen(false),
+      });
+      setModalOpen(true);
     } catch (err) {
       console.error(err.message);
-      alert(err.message);
+      setModalData({
+        title: "Greška",
+        message: err.message,
+        onConfirm: () => setModalOpen(false),
+      });
+      setModalOpen(true);
     }
   };
 
@@ -697,6 +772,13 @@ const RadniNaloziPage = () => {
           ))}
         </div>
       )}
+      <Modal
+        isOpen={modalOpen}
+        title={modalData.title}
+        message={modalData.message}
+        onConfirm={modalData.onConfirm}
+        onCancel={modalData.onCancel}
+      />
     </div>
   );
 };

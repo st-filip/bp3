@@ -3,6 +3,7 @@ import Button from "../components/Button";
 import Input from "../components/Input";
 import { FaEdit, FaPlus, FaTimes, FaTrash } from "react-icons/fa";
 import Select from "../components/Select";
+import Modal from "../components/Modal";
 
 const PopisiMagacinaPage = () => {
   const [popisi, setPopisi] = useState([]);
@@ -18,6 +19,13 @@ const PopisiMagacinaPage = () => {
     datum: "",
     kolicina: "",
     sifraproizvoda: "",
+  });
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalData, setModalData] = useState({
+    title: "",
+    message: "",
+    onConfirm: null,
+    onCancel: null,
   });
 
   const fetchPopisi = async () => {
@@ -139,21 +147,38 @@ const PopisiMagacinaPage = () => {
         formattedDate
       );
       setPopisi((prev) => [...prev, addedPopis]);
-      alert("Popis je uspešno dodat.");
+      setModalData({
+        title: "Uspeh",
+        message: "Popis je uspešno dodat.",
+        onConfirm: () => setModalOpen(false),
+      });
+      setModalOpen(true);
     } catch (err) {
       console.error(err.message);
-      alert(err.message);
+      setModalData({
+        title: "Greška",
+        message: err.message,
+        onConfirm: () => setModalOpen(false),
+      });
+      setModalOpen(true);
     }
   };
 
-  const handleDelete = async (siframagacina, datum) => {
-    const confirmDelete = window.confirm(
-      "Da li ste sigurni da želite da obrišete ovaj popis?"
-    );
-    if (!confirmDelete) return;
+  const handleDelete = (siframagacina, datum) => {
+    setModalData({
+      title: "Potvrda brisanja",
+      message: "Da li ste sigurni da želite da obrišete ovaj popis?",
+      onConfirm: () => {
+        deletePopis(siframagacina, datum);
+        setModalOpen(false);
+      },
+      onCancel: () => setModalOpen(false),
+    });
+    setModalOpen(true);
+  };
 
+  const deletePopis = async (siframagacina, datum) => {
     const formattedDate = formatDate(datum);
-
     try {
       const response = await fetch(
         `http://localhost:5000/popisna-lista/${siframagacina}/${formattedDate}`,
@@ -170,10 +195,20 @@ const PopisiMagacinaPage = () => {
             formatDate(popis.datum) !== formattedDate
         )
       );
-      alert("Popis je uspešno obrisan.");
+      setModalData({
+        title: "Uspeh",
+        message: "Popis je uspešno obrisan.",
+        onConfirm: () => setModalOpen(false),
+      });
+      setModalOpen(true);
     } catch (err) {
       console.error(err.message);
-      alert(err.message);
+      setModalData({
+        title: "Greška",
+        message: err.message,
+        onConfirm: () => setModalOpen(false),
+      });
+      setModalOpen(true);
     }
   };
 
@@ -245,10 +280,20 @@ const PopisiMagacinaPage = () => {
       console.log(novaStavka);
       setStavke((prev) => [...prev, novaStavka]);
       console.log(stavke);
-      alert("Stavka je uspešno dodata.");
+      setModalData({
+        title: "Uspeh",
+        message: "Stavka popisa je uspešno dodata.",
+        onConfirm: () => setModalOpen(false),
+      });
+      setModalOpen(true);
     } catch (err) {
       console.error(err.message);
-      alert(err.message);
+      setModalData({
+        title: "Greška",
+        message: err.message,
+        onConfirm: () => setModalOpen(false),
+      });
+      setModalOpen(true);
     } finally {
       setNewStavka((prev) => ({
         ...prev,
@@ -468,6 +513,13 @@ const PopisiMagacinaPage = () => {
           </div>
         </div>
       )}
+      <Modal
+        isOpen={modalOpen}
+        title={modalData.title}
+        message={modalData.message}
+        onConfirm={modalData.onConfirm}
+        onCancel={modalData.onCancel}
+      />
     </div>
   );
 };
