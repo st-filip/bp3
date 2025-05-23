@@ -92,6 +92,49 @@ const ProivodService = {
     );
     return result.rows;
   },
+
+  searchByConditions: async (naziv, nazivjm) => {
+    const values = [];
+    let conditions = [`p.naziv NOT ILIKE 'Proizvod%'`];
+
+    if (naziv) {
+      values.push(`%${naziv}%`);
+      conditions.push(`p.naziv ILIKE $${values.length}`);
+    }
+
+    if (nazivjm) {
+      values.push(nazivjm);
+      conditions.push(`jm.naziv = $${values.length}`);
+    }
+
+    const whereClause = conditions.length
+      ? `WHERE ${conditions.join(" AND ")}`
+      : "";
+
+    const result = await pool.query(
+      `SELECT 
+      p.sifraproizvoda, 
+      p.naziv,
+      (SELECT ROW_TO_JSON(jm_object) 
+       FROM (
+         SELECT sifrajm, naziv AS nazivjm 
+         FROM jedinicamere 
+         WHERE sifrajm = p.sifrajm
+       ) jm_object) AS jedinicamere,
+      (SELECT ROW_TO_JSON(tp_object) 
+       FROM (
+         SELECT sifratp, naziv AS nazivtp 
+         FROM tipproizvoda 
+         WHERE sifratp = p.sifratp
+       ) tp_object) AS tipproizvoda
+    FROM proizvod p
+    JOIN jedinicamere jm ON jm.sifrajm = p.sifrajm
+    ${whereClause}`,
+      values
+    );
+
+    return result.rows;
+  },
 };
 
 module.exports = ProivodService;

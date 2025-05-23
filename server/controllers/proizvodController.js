@@ -96,6 +96,26 @@ const ProizvodController = {
       res.status(500).send(error.message);
     }
   },
+
+  searchByConditions: async (req, res) => {
+    try {
+      const { naziv, nazivjm } = req.query;
+
+      if (!naziv && !nazivjm) {
+        const proizvodi = await ProizvodService.getAll();
+        return res.json(proizvodi);
+      }
+
+      const proizvodi = await ProizvodService.searchByConditions(
+        naziv,
+        nazivjm
+      );
+      res.json(proizvodi);
+    } catch (error) {
+      console.error(error.message);
+      res.status(500).send(error.message);
+    }
+  },
 };
 
 module.exports = ProizvodController;

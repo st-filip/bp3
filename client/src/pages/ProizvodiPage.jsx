@@ -17,7 +17,8 @@ const ProizvodiPage = () => {
   const [jediniceMere, setJediniceMere] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editingProizvodId, setEditingProizvodId] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchNaziv, setSearchNaziv] = useState("");
+  const [selectedJedinicaMere, setSelectedJedinicaMere] = useState("");
 
   const fetchProizvodi = async () => {
     try {
@@ -126,10 +127,14 @@ const ProizvodiPage = () => {
         const data = await response.json();
         const addedProizvod = await fetchProizvodById(data.sifraproizvoda);
         setProizvodi((prev) => [...prev, addedProizvod]);
-        const lowercasedQuery = searchQuery.toLowerCase();
-        if (addedProizvod.naziv.toLowerCase().includes(lowercasedQuery)) {
-          setFilteredProizvodi((prev) => [...prev, addedProizvod]);
-        }
+        handleSearch();
+        setNewProizvod({
+          naziv: "",
+          sifrajm: "",
+          sifratp: "",
+        });
+        setIsAdding(false);
+        setIsEditing(false);
         alert("Proizvod je uspešno dodat.");
       }
     } catch (err) {
@@ -193,13 +198,30 @@ const ProizvodiPage = () => {
     }));
   };
 
-  // Funkcija za pretragu
-  const handleSearch = () => {
-    const lowercasedQuery = searchQuery.toLowerCase();
-    const filtered = proizvodi.filter((proizvod) =>
-      proizvod.naziv.toLowerCase().includes(lowercasedQuery)
-    );
-    setFilteredProizvodi(filtered);
+  const handleSearch = async () => {
+    try {
+      let searchUrl = "http://localhost:5000/proizvod/search?";
+      if (searchNaziv) {
+        searchUrl += `naziv=${encodeURIComponent(searchNaziv)}&`;
+      }
+      if (selectedJedinicaMere) {
+        searchUrl += `nazivjm=${encodeURIComponent(selectedJedinicaMere)}&`;
+      }
+
+      if (searchUrl.endsWith("&")) {
+        searchUrl = searchUrl.slice(0, -1);
+      }
+
+      const response = await fetch(searchUrl);
+      if (!response.ok) {
+        throw new Error("Greška pri pretrazi proizvoda");
+      }
+      const data = await response.json();
+      setFilteredProizvodi(data);
+    } catch (err) {
+      console.error(err.message);
+      alert("Došlo je do greške pri pretrazi.");
+    }
   };
 
   return (
@@ -212,8 +234,18 @@ const ProizvodiPage = () => {
             name="nazivSearch"
             type="text"
             placeholder="Naziv proizvoda"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            value={searchNaziv}
+            onChange={(e) => setSearchNaziv(e.target.value)}
+          />
+          <Select
+            name="nazivjmSearch"
+            value={selectedJedinicaMere}
+            onChange={(e) => setSelectedJedinicaMere(e.target.value)}
+            option1="jedinicu mere"
+            options={jediniceMere.map((jm) => ({
+              value: jm.naziv,
+              label: jm.naziv,
+            }))}
           />
           <Button
             icon={<FaSearch size={20} />}
