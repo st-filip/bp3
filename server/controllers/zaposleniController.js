@@ -87,6 +87,27 @@ const ZaposleniController = {
       res.status(500).send(error.message);
     }
   },
+
+  createTipZaposlenog: async (req, res) => {
+    try {
+      const { naziv } = req.body;
+
+      if (!naziv) {
+        return res
+          .status(400)
+          .json({ message: "Naziv tipa zaposlenog je obavezan." });
+      }
+
+      await ZaposleniService.createTipZaposlenog(naziv);
+
+      return res.status(201).json({ message: "Tip zaposlenog uspešno dodat." });
+    } catch (error) {
+      console.error(error.message);
+      return res
+        .status(500)
+        .send({ message: "Greška pri dodavanju tipa zaposlenog." });
+    }
+  },
 };
 
 module.exports = ZaposleniController;

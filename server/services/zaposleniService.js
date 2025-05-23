@@ -45,6 +45,14 @@ const ZaposleniService = {
     const tipovi = result.rows[0]?.substring?.split(",") || [];
     return tipovi;
   },
+
+  createTipZaposlenog: async (naziv) => {
+    try {
+      await pool.query("CALL update_check_ogranicenje_zaposleni($1)", [naziv]);
+    } catch (error) {
+      console.error("Greška pri kreiranju tipa zaposlenog:", error.message);
+    }
+  },
 };
 
 module.exports = ZaposleniService;

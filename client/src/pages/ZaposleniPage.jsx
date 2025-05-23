@@ -14,6 +14,7 @@ const ZaposleniPage = () => {
     nazivtipazaposlenog: "",
   });
   const [Tipovi, setTipovi] = useState([]);
+  const [newType, setNewType] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [editingZaposleniId, setEditingZaposleniId] = useState(null);
   const [searchQuery, setSearchQuery] = useState(""); // Dodajemo stanje za pretragu
@@ -51,6 +52,30 @@ const ZaposleniPage = () => {
     fetchZaposleni();
     fetchNaziviTipaZaposlenog();
   }, []);
+
+  const handleAddType = async (event) => {
+    event.preventDefault();
+    try {
+      const response = await fetch(
+        "http://localhost:5000/zaposleni/tip-zaposlenog",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ naziv: newType }),
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Greška pri dodavanju tipa zaposlenog");
+      }
+      const data = await response.json();
+      fetchNaziviTipaZaposlenog();
+      setNewType("");
+      alert("Tip zaposlenog je uspešno dodat.");
+    } catch (err) {
+      console.error(err.message);
+      alert("Došlo je do greške: " + err.message);
+    }
+  };
 
   const handleAddZaposleni = async (event) => {
     event.preventDefault();
@@ -200,52 +225,80 @@ const ZaposleniPage = () => {
       </div>
 
       {isAdding && (
-        <form
-          onSubmit={handleAddZaposleni}
-          className="bg-white p-6 rounded-lg shadow-md mb-6"
-        >
-          <h2 className="text-xl font-semibold mb-4">
-            {isEditing ? "Izmeni zaposlenog" : "Dodaj novog zaposlenog"}
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input
-              type="text"
-              name="imeprezime"
-              value={newZaposleni.imeprezime}
-              onChange={handleInputChange}
-              label="Ime i prezime"
-              required
-            />
-            {!isEditing && (
+        <>
+          <form
+            onSubmit={handleAddType}
+            className="bg-white p-6 rounded-lg shadow-md mb-6"
+          >
+            <h2 className="text-xl font-semibold mb-4">
+              Dodaj novi tip zaposlenog
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Input
                 type="text"
-                name="jmbg"
-                value={newZaposleni.jmbg}
-                onChange={handleInputChange}
-                label="JMBG"
+                name="newType"
+                value={newType}
+                onChange={(e) => setNewType(e.target.value)}
+                label="Naziv tipa zaposlenog"
                 required
               />
-            )}
-            <Select
-              name="nazivtipazaposlenog"
-              value={newZaposleni.nazivtipazaposlenog}
-              onChange={handleInputChange}
-              label="Tip zaposlenog"
-              options={Tipovi.map((tip) => ({
-                value: tip,
-                label: tip,
-              }))}
-              required
-            />
-          </div>
-          <div className="mt-4">
-            <Button
-              icon={isEditing ? <FaEdit size={20} /> : <FaPlus size={20} />}
-              type="submit"
-              variant="success"
-            />
-          </div>
-        </form>
+            </div>
+            <div className="mt-4">
+              <Button
+                icon={<FaPlus size={20} />}
+                type="submit"
+                variant="success"
+              />
+            </div>
+          </form>
+
+          <form
+            onSubmit={handleAddZaposleni}
+            className="bg-white p-6 rounded-lg shadow-md mb-6"
+          >
+            <h2 className="text-xl font-semibold mb-4">
+              {isEditing ? "Izmeni zaposlenog" : "Dodaj novog zaposlenog"}
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Input
+                type="text"
+                name="imeprezime"
+                value={newZaposleni.imeprezime}
+                onChange={handleInputChange}
+                label="Ime i prezime"
+                required
+              />
+              {!isEditing && (
+                <Input
+                  type="text"
+                  name="jmbg"
+                  value={newZaposleni.jmbg}
+                  onChange={handleInputChange}
+                  label="JMBG"
+                  required
+                />
+              )}
+              <Select
+                name="nazivtipazaposlenog"
+                value={newZaposleni.nazivtipazaposlenog}
+                onChange={handleInputChange}
+                label="Tip zaposlenog"
+                options={Tipovi.map((tip) => ({
+                  value: tip,
+                  label: tip,
+                }))}
+                required
+              />
+            </div>
+            <div className="mt-4">
+              <Button
+                icon={isEditing ? <FaEdit size={20} /> : <FaPlus size={20} />}
+                type="submit"
+                variant="success"
+              />
+            </div>
+          </form>
+        </>
       )}
 
       <div className="overflow-x-auto shadow-md rounded-xl border border-gray-300">
