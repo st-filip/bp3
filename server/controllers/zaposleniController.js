@@ -105,7 +105,9 @@ const ZaposleniController = {
       console.error(error.message);
       return res
         .status(500)
-        .send({ message: "Greška pri dodavanju tipa zaposlenog." });
+        .send({
+          message: "Greška pri dodavanju tipa zaposlenog: " + error.message,
+        });
     }
   },
 

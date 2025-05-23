@@ -51,6 +51,7 @@ const ZaposleniService = {
       await pool.query("CALL update_check_ogranicenje_zaposleni($1)", [naziv]);
     } catch (error) {
       console.error("Greška pri kreiranju tipa zaposlenog:", error.message);
+      throw error;
     }
   },
 
