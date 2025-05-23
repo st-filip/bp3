@@ -67,10 +67,10 @@ const DsAngazovanjeService = {
     return result.rows[0];
   },
 
-  update: async (brojds, jmbg, sifrauloge, napomena) => {
+  update: async (brojds, jmbg, sifrauloge, napomena, imeprezime) => {
     await pool.query(
-      "UPDATE dsangazovanje SET napomena = $1 WHERE brojds = $2 AND jmbg = $3 AND sifrauloge = $4",
-      [napomena, brojds, jmbg, sifrauloge]
+      "UPDATE dsangazovanje SET napomena = $1, imeprezime = $2 WHERE brojds = $3 AND jmbg = $4 AND sifrauloge = $5",
+      [napomena, imeprezime, brojds, jmbg, sifrauloge]
     );
   },
 

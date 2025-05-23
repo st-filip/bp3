@@ -26,7 +26,7 @@ const RadniNaloziPage = () => {
     elenergija: 0,
     brojtp: "",
     brojts: "",
-    ukupnoSati: 0,
+    ukupnosati: 0,
   });
   const [isEditing, setIsEditing] = useState(false);
   const [angazovanja, setAngazovanja] = useState([]);
@@ -38,7 +38,7 @@ const RadniNaloziPage = () => {
   const [editBrojrn, setEditBrojrn] = useState(undefined);
   const [zaposleni, setZaposleni] = useState([]);
   const [uloge, setUloge] = useState([]);
-  const [ukupnoSati, setUkupnoSati] = useState(0);
+  const [us, setUs] = useState(undefined);
 
   const fetchRadniNalozi = async () => {
     try {
@@ -66,7 +66,7 @@ const RadniNaloziPage = () => {
       const data = await response.json();
       return data;
     } catch (err) {
-      setError(err.message);
+      console.error(err.message);
     }
   };
 
@@ -79,7 +79,7 @@ const RadniNaloziPage = () => {
       const data = await response.json();
       setProizvodi(data);
     } catch (err) {
-      setError(err.message);
+      console.error(err.message);
     }
   };
 
@@ -92,7 +92,7 @@ const RadniNaloziPage = () => {
       const data = await response.json();
       setPogoni(data);
     } catch (err) {
-      setError(err.message);
+      console.error(err.message);
     }
   };
 
@@ -105,7 +105,7 @@ const RadniNaloziPage = () => {
       const data = await response.json();
       setTehnoloskiPostupci(data);
     } catch (err) {
-      setError(err.message);
+      console.error(err.message);
     }
   };
 
@@ -120,7 +120,7 @@ const RadniNaloziPage = () => {
       const data = await response.json();
       setTehnickeSpecifikacije(data);
     } catch (err) {
-      setError(err.message);
+      console.error(err.message);
     }
   };
 
@@ -133,7 +133,7 @@ const RadniNaloziPage = () => {
       const data = await response.json();
       setZaposleni(data);
     } catch (err) {
-      setError(err.message);
+      console.error(err.message);
     }
   };
 
@@ -146,7 +146,7 @@ const RadniNaloziPage = () => {
       const data = await response.json();
       setUloge(data);
     } catch (err) {
-      setError(err.message);
+      console.error(err.message);
     }
   };
 
@@ -161,7 +161,7 @@ const RadniNaloziPage = () => {
       const data = await response.json();
       return data;
     } catch (err) {
-      setError(err.message);
+      console.error(err.message);
     }
   };
 
@@ -188,8 +188,11 @@ const RadniNaloziPage = () => {
       elenergija: rn.elenergija || 0,
       brojtp: rn.tehnoloskipostupak.brojtp,
       brojts: rn.tehnickaspecifikacija.brojts,
-      ukupnoSati: rn.ukupnosati || 0,
+      ukupnosati: rn.ukupnosati || 0,
     });
+
+    console.log(rn);
+    setUs(rn.ukupnosati);
 
     setNovoAngazovanje((prev) => ({
       ...prev,
@@ -239,9 +242,12 @@ const RadniNaloziPage = () => {
 
   const handleAddNalog = async (event) => {
     event.preventDefault();
-
     try {
       if (isEditing) {
+        console.log(newNalog.ukupnosati + " " + us);
+        if (us == undefined && newNalog.ukupnosati == 0) {
+          newNalog.ukupnosati = undefined;
+        }
         const response = await fetch(
           `http://localhost:5000/radni-nalog/${editBrojrn}`,
           {
@@ -254,10 +260,15 @@ const RadniNaloziPage = () => {
         );
 
         if (!response.ok) {
-          throw new Error("Greška pri ažuriranju radnog naloga");
+          const errorText = await response.text();
+          throw new Error(`Greška pri ažuriranju radnog naloga. ${errorText}`);
         }
 
         const updatedNalog = await fetchRadniNalogById(editBrojrn);
+        setNewNalog((prev) => ({
+          ...prev,
+          ukupnosati: updatedNalog.ukupnosati ? updatedNalog.ukupnosati : 0,
+        }));
 
         setRadniNalozi((prev) =>
           prev.map((nalog) =>
@@ -267,6 +278,9 @@ const RadniNaloziPage = () => {
 
         alert("Radni nalog je uspešno ažuriran.");
       } else {
+        if (newNalog.ukupnosati == 0) {
+          newNalog.ukupnosati = undefined;
+        }
         console.log("Dodaje se novi radni nalog", newNalog);
 
         const response = await fetch("http://localhost:5000/radni-nalog", {
@@ -278,7 +292,8 @@ const RadniNaloziPage = () => {
         });
 
         if (!response.ok) {
-          throw new Error("Greška pri dodavanju radnog naloga");
+          const errorText = await response.text();
+          throw new Error(`Greška pri dodavanju radnog naloga. ${errorText}`);
         }
 
         const data = await response.json();
@@ -302,11 +317,16 @@ const RadniNaloziPage = () => {
           elenergija: 0,
           brojtp: "",
           brojts: "",
+          ukupnosati: 0,
         });
       }
     } catch (err) {
       console.error(err.message);
-      alert("Došlo je do greške: " + err.message);
+      alert(err.message);
+      setNewNalog((prev) => ({
+        ...prev,
+        ukupnosati: us || 0,
+      }));
     }
   };
 
@@ -325,6 +345,7 @@ const RadniNaloziPage = () => {
       elenergija: 0,
       brojtp: "",
       brojts: "",
+      ukupnosati: 0,
     });
     setAngazovanja([]);
     setNovoAngazovanje({
@@ -355,7 +376,8 @@ const RadniNaloziPage = () => {
         }
       );
       if (!response.ok) {
-        throw new Error("Greška pri brisanju angažovanja");
+        const errorText = await response.text();
+        throw new Error(`Greška pri brisanju angažovanja. ${errorText}`);
       }
       setAngazovanja((prev) =>
         prev.filter(
@@ -365,7 +387,7 @@ const RadniNaloziPage = () => {
       alert("Angažovanje je uspešno obrisano.");
     } catch (err) {
       console.error(err.message);
-      alert("Došlo je do greške pri brisanju angažovanja.");
+      alert(err.message);
     }
   };
 
@@ -377,7 +399,8 @@ const RadniNaloziPage = () => {
         body: JSON.stringify(novoAngazovanje),
       });
       if (!response.ok) {
-        throw new Error("Greška pri dodavanju angažovanja");
+        const errorText = await response.text();
+        throw new Error(`Greška pri dodavanju angažovanja. ${errorText}`);
       }
       const data = await response.json();
       const novoRNAngazovanje = await fetchRNNagazovanjeById(
@@ -390,7 +413,7 @@ const RadniNaloziPage = () => {
       alert("Angažovanje je uspešno dodato.");
     } catch (err) {
       console.error(err.message);
-      alert("Došlo je do greške pri dodavanju angažovanja.");
+      alert(err.message);
     }
   };
 
@@ -487,7 +510,6 @@ const RadniNaloziPage = () => {
                 value={newNalog.planiranakol}
                 onChange={handleInputChange}
                 label="Planirana količina"
-                min={0}
                 required
               />
               <Input
@@ -496,7 +518,6 @@ const RadniNaloziPage = () => {
                 value={newNalog.ostvarenakol}
                 onChange={handleInputChange}
                 label="Ostvarena količina"
-                min={0}
                 required
               />
               <Select
@@ -517,7 +538,6 @@ const RadniNaloziPage = () => {
                 value={newNalog.voda}
                 onChange={handleInputChange}
                 label="Voda"
-                min={0}
                 required
               />
               <Input
@@ -526,7 +546,6 @@ const RadniNaloziPage = () => {
                 value={newNalog.vodenapara}
                 onChange={handleInputChange}
                 label="Vodena para"
-                min={0}
                 required
               />
               <Input
@@ -535,19 +554,15 @@ const RadniNaloziPage = () => {
                 value={newNalog.elenergija}
                 onChange={handleInputChange}
                 label="Električna energija"
-                min={0}
                 required
               />
-              {isEditing && (
-                <Input
-                  type="number"
-                  name="ukupnoSati"
-                  value={newNalog.ukupnoSati}
-                  onChange={handleInputChange}
-                  label="Ukupno sati"
-                  readonly={true}
-                />
-              )}
+              <Input
+                type="number"
+                name="ukupnosati"
+                value={newNalog.ukupnosati}
+                onChange={handleInputChange}
+                label="Ukupno sati"
+              />
             </div>
 
             <div className="mt-4">

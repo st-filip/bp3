@@ -67,7 +67,8 @@ const ZaposleniPage = () => {
         }
       );
       if (!response.ok) {
-        throw new Error("Greška pri dodavanju tipa zaposlenog");
+        const errorText = await response.text();
+        throw new Error(`Greška pri dodavanju tipa zaposlenog. ${errorText}`);
       }
       const data = await response.json();
       fetchNaziviTipaZaposlenog();
@@ -75,7 +76,7 @@ const ZaposleniPage = () => {
       alert("Tip zaposlenog je uspešno dodat.");
     } catch (err) {
       console.error(err.message);
-      alert("Došlo je do greške: " + err.message);
+      alert(err.message);
     }
   };
 
@@ -113,7 +114,8 @@ const ZaposleniPage = () => {
           body: JSON.stringify(newZaposleni),
         });
         if (!response.ok) {
-          throw new Error("Greška pri dodavanju zaposlenog");
+          const errorText = await response.text();
+          throw new Error(`Greška pri dodavanju zaposlenog. ${errorText}`);
         }
         const data = await response.json();
         setZaposleni((prev) => [...prev, data]);
@@ -129,7 +131,7 @@ const ZaposleniPage = () => {
       }
     } catch (err) {
       console.error(err.message);
-      alert("Došlo je do greške: " + err.message);
+      alert(err.message);
     }
   };
 
@@ -144,7 +146,8 @@ const ZaposleniPage = () => {
         method: "DELETE",
       });
       if (!response.ok) {
-        throw new Error("Greška pri brisanju zaposlenog");
+        const errorText = await response.text();
+        throw new Error(`Greška pri brisanju zaposlenog. ${errorText}`);
       }
       setZaposleni((prev) => prev.filter((zaposleni) => zaposleni.jmbg !== id));
       setFilteredZaposleni((prev) =>
@@ -153,7 +156,7 @@ const ZaposleniPage = () => {
       alert("Zaposleni je uspešno obrisan.");
     } catch (err) {
       console.error(err.message);
-      alert("Došlo je do greške pri brisanju.");
+      alert(err.message);
     }
   };
 
@@ -204,13 +207,14 @@ const ZaposleniPage = () => {
 
       const response = await fetch(searchUrl);
       if (!response.ok) {
-        throw new Error("Greška pri pretrazi zaposlenih");
+        const errorText = await response.text();
+        throw new Error(`Greška pri pretrazi zaposlenih. ${errorText}`);
       }
       const data = await response.json();
       setFilteredZaposleni(data);
     } catch (err) {
       console.error(err.message);
-      alert("Došlo je do greške pri pretrazi.");
+      alert(err.message);
     }
   };
 

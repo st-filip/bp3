@@ -71,7 +71,7 @@ const ProizvodiPage = () => {
       const data = await response.json();
       return data;
     } catch (err) {
-      setError(err.message);
+      console.error(err.message);
     }
   };
 
@@ -122,7 +122,8 @@ const ProizvodiPage = () => {
           body: JSON.stringify(newProizvod),
         });
         if (!response.ok) {
-          throw new Error("Greška pri dodavanju proizvoda");
+          const errorText = await response.text();
+          throw new Error(`Greška pri dodavanju proizvoda. ${errorText}`);
         }
         const data = await response.json();
         const addedProizvod = await fetchProizvodById(data.sifraproizvoda);
@@ -139,7 +140,7 @@ const ProizvodiPage = () => {
       }
     } catch (err) {
       console.error(err.message);
-      alert("Došlo je do greške: " + err.message);
+      alert(err.message);
     }
   };
 
@@ -154,7 +155,8 @@ const ProizvodiPage = () => {
         method: "DELETE",
       });
       if (!response.ok) {
-        throw new Error("Greška pri brisanju proizvoda");
+        const errorText = await response.text();
+        throw new Error(`Greška pri brisanju proizvoda. ${errorText}`);
       }
       setProizvodi((prev) =>
         prev.filter((proizvod) => proizvod.sifraproizvoda !== id)
@@ -165,7 +167,7 @@ const ProizvodiPage = () => {
       alert("Proizvod je uspešno obrisan.");
     } catch (err) {
       console.error(err.message);
-      alert("Došlo je do greške pri brisanju.");
+      alert(err.message);
     }
   };
 
@@ -214,13 +216,14 @@ const ProizvodiPage = () => {
 
       const response = await fetch(searchUrl);
       if (!response.ok) {
-        throw new Error("Greška pri pretrazi proizvoda");
+        const errorText = await response.text();
+        throw new Error(`Greška pri pretrazi proizvoda. ${errorText}`);
       }
       const data = await response.json();
       setFilteredProizvodi(data);
     } catch (err) {
       console.error(err.message);
-      alert("Došlo je do greške pri pretrazi.");
+      alert(err.message);
     }
   };
 

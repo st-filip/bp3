@@ -15,6 +15,7 @@ const RadniNalogController = {
         elenergija,
         brojtp,
         brojts,
+        ukupnosati,
       } = req.body;
 
       if (
@@ -30,7 +31,9 @@ const RadniNalogController = {
         !brojtp ||
         !brojts
       ) {
-        return res.status(500).json({ message: "Sva polja su obavezna." });
+        return res
+          .status(500)
+          .json({ message: "Sva polja osim ukupnih sati su obavezna." });
       }
 
       const newRadniNalog = await RadniNalogService.create(
@@ -44,7 +47,8 @@ const RadniNalogController = {
         vodenapara,
         elenergija,
         brojtp,
-        brojts
+        brojts,
+        ukupnosati
       );
 
       res.json(newRadniNalog);
@@ -95,6 +99,7 @@ const RadniNalogController = {
         elenergija,
         brojtp,
         brojts,
+        ukupnosati,
       } = req.body;
 
       if (
@@ -110,7 +115,9 @@ const RadniNalogController = {
         !brojtp ||
         !brojts
       ) {
-        return res.status(400).json({ message: "Sva polja su obavezna." });
+        return res
+          .status(400)
+          .json({ message: "Sva polja osim ukupnih sati su obavezna." });
       }
 
       await RadniNalogService.update(
@@ -125,7 +132,8 @@ const RadniNalogController = {
         vodenapara,
         elenergija,
         brojtp,
-        brojts
+        brojts,
+        ukupnosati
       );
 
       res.json({ message: "Radni nalog je uspešno ažuriran." });

@@ -21,6 +21,7 @@ const DnevniciSmenaPage = () => {
     sifrauloge: "",
     jmbg: "",
     napomena: "",
+    imeprezime: "",
   });
   const [zaposleni, setZaposleni] = useState([]);
   const [uloge, setUloge] = useState([]);
@@ -82,7 +83,7 @@ const DnevniciSmenaPage = () => {
       const data = await response.json();
       setZaposleni(data);
     } catch (err) {
-      setError(err.message);
+      console.error(err.message);
     }
   };
 
@@ -95,7 +96,7 @@ const DnevniciSmenaPage = () => {
       const data = await response.json();
       setUloge(data);
     } catch (err) {
-      setError(err.message);
+      console.error(err.message);
     }
   };
 
@@ -108,7 +109,7 @@ const DnevniciSmenaPage = () => {
       const data = await response.json();
       setPoslovi(data);
     } catch (err) {
-      setError(err.message);
+      console.error(err.message);
     }
   };
 
@@ -123,7 +124,7 @@ const DnevniciSmenaPage = () => {
       const data = await response.json();
       return data;
     } catch (err) {
-      setError(err.message);
+      console.error(err.message);
     }
   };
 
@@ -196,7 +197,7 @@ const DnevniciSmenaPage = () => {
       const data = await response.json();
       setTipovirs(data);
     } catch (err) {
-      setError(err.message);
+      console.error(err.message);
     }
   };
 
@@ -238,14 +239,13 @@ const DnevniciSmenaPage = () => {
 
   const handleAddSmena = async (event) => {
     event.preventDefault();
-    const selectedNalog = radniNalozi.find(
+    /*const selectedNalog = radniNalozi.find(
       (nalog) => nalog.brojrn == newDnevnikSmene.brojrn
     );
     await setNewDnevnikSmene({
       ...newDnevnikSmene,
       sifrapogona: selectedNalog.proizvodnipogon.sifrapogona,
-    });
-
+    });*/
     try {
       if (isEditing) {
         const response = await fetch(
@@ -260,7 +260,8 @@ const DnevniciSmenaPage = () => {
         );
 
         if (!response.ok) {
-          throw new Error("Greška pri ažuriranju dnevnika smene");
+          const errorText = await response.text();
+          throw new Error(`Greška pri ažuriranju dnevnika smene. ${errorText}`);
         }
 
         const updatedDnevnikSmene = await fetchDnevnikSmeneById(editBrojds);
@@ -272,6 +273,13 @@ const DnevniciSmenaPage = () => {
         );
 
         alert("Dnevnik smene je uspešno ažuriran.");
+        const selectedNalog = radniNalozi.find(
+          (nalog) => nalog.brojrn == newDnevnikSmene.brojrn
+        );
+        await setNewDnevnikSmene({
+          ...newDnevnikSmene,
+          sifrapogona: selectedNalog.proizvodnipogon.sifrapogona,
+        });
       } else {
         const response = await fetch("http://localhost:5000/dnevnik-smene", {
           method: "POST",
@@ -282,7 +290,8 @@ const DnevniciSmenaPage = () => {
         });
 
         if (!response.ok) {
-          throw new Error("Greška pri dodavanju dnevnika smene");
+          const errorText = await response.text();
+          throw new Error(`Greška pri dodavanju dnevnika smene. ${errorText}`);
         }
 
         const data = await response.json();
@@ -298,7 +307,7 @@ const DnevniciSmenaPage = () => {
       }
     } catch (err) {
       console.error(err.message);
-      alert("Došlo je do greške: " + err.message);
+      alert(err.message);
     }
   };
 
@@ -339,7 +348,7 @@ const DnevniciSmenaPage = () => {
       setAngazovanja(data);
     } catch (err) {
       console.error(err.message);
-      alert("Došlo je do greške pri dobijanju angažovanja.");
+      alert(err.message);
     }
 
     fetchStavkeByBrojDS(ds.brojds);
@@ -363,7 +372,8 @@ const DnevniciSmenaPage = () => {
         }
       );
       if (!response.ok) {
-        throw new Error("Greška pri brisanju dnevnika smene");
+        const errorText = await response.text();
+        throw new Error(`Greška pri brisanju dnevnika smene. ${errorText}`);
       }
       setDnevniciSmena((prev) =>
         prev.filter((dnevnikSmene) => dnevnikSmene.brojds !== brojds)
@@ -371,7 +381,7 @@ const DnevniciSmenaPage = () => {
       alert("Dnevnik smene je uspešno obrisan.");
     } catch (err) {
       console.error(err.message);
-      alert("Došlo je do greške pri brisanju.");
+      alert(err.message);
     }
   };
 
@@ -388,6 +398,7 @@ const DnevniciSmenaPage = () => {
       jmbg: "",
       sifrauloge: "",
       napomena: "",
+      imeprezime: "",
     });
   };
 
@@ -420,7 +431,8 @@ const DnevniciSmenaPage = () => {
         }
       );
       if (!response.ok) {
-        throw new Error("Greška pri brisanju angažovanja");
+        const errorText = await response.text();
+        throw new Error(`Greška pri brisanju angažovanja. ${errorText}`);
       }
       setAngazovanja((prev) =>
         prev.filter(
@@ -430,7 +442,7 @@ const DnevniciSmenaPage = () => {
       alert("Angažovanje je uspešno obrisano.");
     } catch (err) {
       console.error(err.message);
-      alert("Došlo je do greške pri brisanju angažovanja.");
+      alert(err.message);
     }
   };
 
@@ -444,12 +456,16 @@ const DnevniciSmenaPage = () => {
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ napomena: novoAngazovanje.napomena }),
+            body: JSON.stringify({
+              napomena: novoAngazovanje.napomena,
+              imeprezime: novoAngazovanje.imeprezime,
+            }),
           }
         );
 
         if (!response.ok) {
-          throw new Error("Greška pri ažuriranju angažovanja");
+          const errorText = await response.text();
+          throw new Error(`Greška pri ažuriranju angažovanja. ${errorText}`);
         }
 
         const updatedAngazovanje = await fetchDSangazovanjeById(
@@ -473,11 +489,12 @@ const DnevniciSmenaPage = () => {
           jmbg: "",
           sifrauloge: "",
           napomena: "",
+          imeprezime: "",
         }));
         alert("Angažovanje je uspešno ažurirano.");
       } catch (err) {
         console.error(err.message);
-        alert("Došlo je do greške pri ažuriranju angažovanja.");
+        alert(err.message);
       }
     } else {
       try {
@@ -487,7 +504,8 @@ const DnevniciSmenaPage = () => {
           body: JSON.stringify(novoAngazovanje),
         });
         if (!response.ok) {
-          throw new Error("Greška pri dodavanju angažovanja");
+          const errorText = await response.text();
+          throw new Error(`Greška pri dodavanju angažovanja. ${errorText}`);
         }
         const data = await response.json();
         const novoDSAngazovanje = await fetchDSangazovanjeById(
@@ -496,11 +514,16 @@ const DnevniciSmenaPage = () => {
           data.sifrauloge
         );
         setAngazovanja((prev) => [...prev, novoDSAngazovanje]);
-        setNovoAngazovanje({ sifrauloge: "", jmbg: "", napomena: "" });
+        setNovoAngazovanje({
+          sifrauloge: "",
+          jmbg: "",
+          napomena: "",
+          imeprezime: "",
+        });
         alert("Angažovanje je uspešno dodato.");
       } catch (err) {
         console.error(err.message);
-        alert("Došlo je do greške pri dodavanju angažovanja.");
+        alert(err.message);
       }
     }
   };
@@ -512,6 +535,7 @@ const DnevniciSmenaPage = () => {
       sifrauloge: a.uloga.sifrauloge,
       jmbg: a.jmbg,
       napomena: a.napomena ? a.napomena : "",
+      imeprezime: a.imeprezime,
     });
   };
 
@@ -536,6 +560,7 @@ const DnevniciSmenaPage = () => {
       jmbg: "",
       sifrauloge: "",
       napomena: "",
+      imeprezime: "",
     }));
   };
 
@@ -574,7 +599,10 @@ const DnevniciSmenaPage = () => {
         );
 
         if (!response.ok) {
-          throw new Error("Greška pri ažuriranju stavke posla");
+          const errorText = await response.text();
+          throw new Error(
+            `Greška pri ažuriranju stavke posla angažovanja. ${errorText}`
+          );
         }
 
         const updatedStavka = await fetchStavkaById(
@@ -602,7 +630,7 @@ const DnevniciSmenaPage = () => {
         alert("Stavka posla je uspešno ažurirana.");
       } catch (err) {
         console.error(err.message);
-        alert("Došlo je do greške pri ažuriranju stavke posla.");
+        alert(err.message);
       }
     } else {
       try {
@@ -612,7 +640,8 @@ const DnevniciSmenaPage = () => {
           body: JSON.stringify(newStavka),
         });
         if (!response.ok) {
-          throw new Error("Greška pri dodavanju stavke");
+          const errorText = await response.text();
+          throw new Error(`Greška pri dodavanju stavke posla. ${errorText}`);
         }
         const data = await response.json();
         const novaStavka = await fetchStavkaById(data.brojds, data.rednibroj);
@@ -622,7 +651,7 @@ const DnevniciSmenaPage = () => {
         alert("Stavka je uspešno dodata.");
       } catch (err) {
         console.error(err.message);
-        alert("Došlo je do greške pri dodavanju stavke.");
+        alert(err.message);
       } finally {
         setNewStavka((prev) => ({
           ...prev,
@@ -650,13 +679,14 @@ const DnevniciSmenaPage = () => {
         }
       );
       if (!response.ok) {
-        throw new Error("Greška pri brisanju stavke posla");
+        const errorText = await response.text();
+        throw new Error(`Greška pri brisanju stavke posla. ${errorText}`);
       }
       setStavke((prev) => prev.filter((s) => s.rednibroj !== rednibroj));
       alert("Stavka posla je uspešno obrisana.");
     } catch (err) {
       console.error(err.message);
-      alert("Došlo je do greške pri brisanju stavke posla.");
+      alert(err.message);
     }
   };
 
@@ -679,7 +709,10 @@ const DnevniciSmenaPage = () => {
         );
 
         if (!response.ok) {
-          throw new Error("Greška pri ažuriranju utroška radnih sati");
+          const errorText = await response.text();
+          throw new Error(
+            `Greška pri ažuriranju utroška radnih sati. ${errorText}`
+          );
         }
 
         const updatedUrs = await fetchUrsById(
@@ -710,7 +743,7 @@ const DnevniciSmenaPage = () => {
         alert("Utrošak radnih sati je uspešno ažuriran.");
       } catch (err) {
         console.error(err.message);
-        alert("Došlo je do greške pri ažuriranju utroška radnih sati.");
+        alert(err.message);
       }
     } else {
       try {
@@ -723,7 +756,10 @@ const DnevniciSmenaPage = () => {
           }
         );
         if (!response.ok) {
-          throw new Error("Greška pri dodavanju utroška radnih sati");
+          const errorText = await response.text();
+          throw new Error(
+            `Greška pri dodavanju utroška radnih sati. ${errorText}`
+          );
         }
         const data = await response.json();
         console.log(data);
@@ -738,7 +774,7 @@ const DnevniciSmenaPage = () => {
         alert("Utrošak radnih sati je uspešno dodat.");
       } catch (err) {
         console.error(err.message);
-        alert("Došlo je do greške pri dodavanju utroška radnih sati.");
+        alert(err.message);
       } finally {
         setNewUrs((prev) => ({
           ...prev,
@@ -785,7 +821,10 @@ const DnevniciSmenaPage = () => {
         }
       );
       if (!response.ok) {
-        throw new Error("Greška pri brisanju utroška radnih sati");
+        const errorText = await response.text();
+        throw new Error(
+          `Greška pri brisanju utroška radnih sati. ${errorText}`
+        );
       }
       setUtroscirs((prev) =>
         prev.filter(
@@ -801,7 +840,7 @@ const DnevniciSmenaPage = () => {
       alert("Utrošak radnih sati je uspešno obrisan.");
     } catch (err) {
       console.error(err.message);
-      alert("Došlo je do greške pri brisanju utroška radnih sati.");
+      alert(err.message);
     }
   };
 
@@ -870,6 +909,21 @@ const DnevniciSmenaPage = () => {
                 }))}
                 required
               />
+              {isEditing && (
+                <Input
+                  type="text"
+                  name="sifrapogona"
+                  value={newDnevnikSmene.sifrapogona}
+                  onChange={(e) => {
+                    setNewDnevnikSmene((prev) => ({
+                      ...prev,
+                      sifrapogona: e.target.value,
+                    }));
+                  }}
+                  label="Šifra pogona"
+                  required
+                />
+              )}
             </div>
             <div className="mt-4">
               <Button
@@ -895,7 +949,7 @@ const DnevniciSmenaPage = () => {
                       : "Dodaj novo angažovanje"}
                   </h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {!isEditingAngazovanje && (
+                    {!isEditingAngazovanje ? (
                       <>
                         <Select
                           name="jmbg"
@@ -932,6 +986,19 @@ const DnevniciSmenaPage = () => {
                           required
                         />
                       </>
+                    ) : (
+                      <Input
+                        type="text"
+                        name="imeprezime"
+                        value={novoAngazovanje.imeprezime}
+                        onChange={(e) => {
+                          setNovoAngazovanje((prev) => ({
+                            ...prev,
+                            imeprezime: e.target.value,
+                          }));
+                        }}
+                        label="Ime i prezime"
+                      />
                     )}
                     <Input
                       type="text"
@@ -1268,7 +1335,6 @@ const DnevniciSmenaPage = () => {
                       type="number"
                       name="brojradnika"
                       value={newStavka.brojradnika}
-                      min={1}
                       onChange={(e) => {
                         setNewStavka((prev) => ({
                           ...prev,

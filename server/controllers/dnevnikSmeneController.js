@@ -49,13 +49,15 @@ const DnevnikSmeneController = {
   update: async (req, res) => {
     try {
       const { brojds } = req.params;
-      const { datum, brojrn } = req.body;
+      const { datum, brojrn, sifrapogona } = req.body;
 
       if (!datum || !brojrn) {
-        return res.status(400).json({ message: "Sva polja su obavezna." });
+        return res
+          .status(400)
+          .json({ message: "Sva polja osim šifre pogona su obavezna." });
       }
 
-      await DnevnikSmeneService.update(brojds, datum, brojrn);
+      await DnevnikSmeneService.update(brojds, datum, brojrn, sifrapogona);
 
       res.json({ message: "Dnevnik smene je uspešno ažuriran." });
     } catch (error) {

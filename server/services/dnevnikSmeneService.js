@@ -45,10 +45,10 @@ const DnevnikSmeneService = {
     return result.rows[0];
   },
 
-  update: async (brojds, datum, brojrn) => {
+  update: async (brojds, datum, brojrn, sifrapogona) => {
     await pool.query(
-      "UPDATE dnevnikSmene SET datum = $1, brojrn = $2 WHERE brojds = $3",
-      [datum, brojrn, brojds]
+      "UPDATE dnevnikSmene SET datum = $1, brojrn = $2, sifrapogona = $3 WHERE brojds = $4",
+      [datum, brojrn, sifrapogona, brojds]
     );
   },
 

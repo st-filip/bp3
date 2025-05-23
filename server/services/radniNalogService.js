@@ -12,10 +12,26 @@ const RadniNalogService = {
     vodenapara,
     elenergija,
     brojtp,
-    brojts
+    brojts,
+    ukupnosati
   ) => {
+    console.log("CREATE request body:", {
+      datum,
+      sifraproizvoda,
+      sifrapogona,
+      planiranakol,
+      ostvarenakol,
+      status,
+      voda,
+      vodenapara,
+      elenergija,
+      brojtp,
+      brojts,
+      ukupnosati,
+    });
+
     const result = await pool.query(
-      "INSERT INTO radninalogpregled (datum, sifraproizvoda, sifrapogona, planiranakol, ostvarenakol, status, voda, vodenapara, elenergija, brojtp, brojts) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *",
+      "INSERT INTO radninalogpregled (datum, sifraproizvoda, sifrapogona, planiranakol, ostvarenakol, status, voda, vodenapara, elenergija, brojtp, brojts, ukupnosati) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *",
       [
         datum,
         sifraproizvoda,
@@ -28,6 +44,7 @@ const RadniNalogService = {
         elenergija,
         brojtp,
         brojts,
+        ukupnosati,
       ]
     );
     return result.rows[0];
@@ -128,10 +145,26 @@ const RadniNalogService = {
     vodenapara,
     elenergija,
     brojtp,
-    brojts
+    brojts,
+    ukupnosati
   ) => {
+    console.log("UPDATE request body:", {
+      datum,
+      sifraproizvoda,
+      sifrapogona,
+      planiranakol,
+      ostvarenakol,
+      status,
+      voda,
+      vodenapara,
+      elenergija,
+      brojtp,
+      brojts,
+      ukupnosati,
+    });
+
     await pool.query(
-      "UPDATE radninalogpregled SET datum = $1, sifraproizvoda = $2, sifrapogona = $3, planiranakol = $4, ostvarenakol = $5, status = $6, voda = $7, vodenapara = $8, elenergija = $9, brojtp = $10, brojts = $11 WHERE brojrn = $12",
+      "UPDATE radninalogpregled SET datum = $1, sifraproizvoda = $2, sifrapogona = $3, planiranakol = $4, ostvarenakol = $5, status = $6, voda = $7, vodenapara = $8, elenergija = $9, brojtp = $10, brojts = $11, ukupnosati = $12 WHERE brojrn = $13",
       [
         datum,
         sifraproizvoda,
@@ -144,6 +177,7 @@ const RadniNalogService = {
         elenergija,
         brojtp,
         brojts,
+        ukupnosati,
         brojrn,
       ]
     );

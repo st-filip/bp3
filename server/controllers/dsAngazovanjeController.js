@@ -67,9 +67,15 @@ const DsAngazovanjeController = {
   update: async (req, res) => {
     try {
       const { brojds, jmbg, sifrauloge } = req.params;
-      const { napomena } = req.body;
+      const { napomena, imeprezime } = req.body;
 
-      await DsAngazovanjeService.update(brojds, jmbg, sifrauloge, napomena);
+      await DsAngazovanjeService.update(
+        brojds,
+        jmbg,
+        sifrauloge,
+        napomena,
+        imeprezime
+      );
 
       res.json({ message: "Napomena je uspešno ažurirana." });
     } catch (error) {

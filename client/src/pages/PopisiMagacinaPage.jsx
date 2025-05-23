@@ -129,7 +129,10 @@ const PopisiMagacinaPage = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...newPopis, datum: formattedDate }),
       });
-      if (!response.ok) throw new Error("Greška pri dodavanju popisa");
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Greška pri dodavanju popisa. ${errorText}`);
+      }
       const data = await response.json();
       const addedPopis = await fetchPopisById(
         data.siframagacina,
@@ -139,7 +142,7 @@ const PopisiMagacinaPage = () => {
       alert("Popis je uspešno dodat.");
     } catch (err) {
       console.error(err.message);
-      alert("Došlo je do greške: " + err.message);
+      alert(err.message);
     }
   };
 
@@ -156,7 +159,10 @@ const PopisiMagacinaPage = () => {
         `http://localhost:5000/popisna-lista/${siframagacina}/${formattedDate}`,
         { method: "DELETE" }
       );
-      if (!response.ok) throw new Error("Greška pri brisanju popisa");
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Greška pri brisanju popisa. ${errorText}`);
+      }
       setPopisi((prev) =>
         prev.filter(
           (popis) =>
@@ -167,7 +173,7 @@ const PopisiMagacinaPage = () => {
       alert("Popis je uspešno obrisan.");
     } catch (err) {
       console.error(err.message);
-      alert("Došlo je do greške pri brisanju.");
+      alert(err.message);
     }
   };
 
@@ -226,7 +232,8 @@ const PopisiMagacinaPage = () => {
         body: JSON.stringify(newStavka),
       });
       if (!response.ok) {
-        throw new Error("Greška pri dodavanju stavke");
+        const errorText = await response.text();
+        throw new Error(`Greška pri dodavanju stavke popisa. ${errorText}`);
       }
       const data = await response.json();
       const formattedDate = formatDate(data.datum);
@@ -241,7 +248,7 @@ const PopisiMagacinaPage = () => {
       alert("Stavka je uspešno dodata.");
     } catch (err) {
       console.error(err.message);
-      alert("Došlo je do greške pri dodavanju stavke.");
+      alert(err.message);
     } finally {
       setNewStavka((prev) => ({
         ...prev,

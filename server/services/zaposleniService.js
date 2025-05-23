@@ -3,7 +3,7 @@ const pool = require("../db");
 const ZaposleniService = {
   create: async (jmbg, imeprezime, nazivtipazaposlenog) => {
     const result = await pool.query(
-      "INSERT INTO zaposleni (jmbg, imeprezime, nazivtipazaposlenog) VALUES($1, $2, $3) RETURNING *",
+      "INSERT INTO zaposleni (jmbg, imeprezime, nazivtipazaposlenog) VALUES(set_jmbg($1), $2, $3) RETURNING *",
       [jmbg, imeprezime, nazivtipazaposlenog]
     );
     return result.rows[0];
