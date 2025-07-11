@@ -38,7 +38,14 @@ Button.propTypes = {
   text: PropTypes.string,
   icon: PropTypes.node,
   onClick: PropTypes.func,
-  variant: PropTypes.oneOf(["basic", "danger", "success", "warning", "info"]),
+  variant: PropTypes.oneOf([
+    "basic",
+    "danger",
+    "success",
+    "warning",
+    "info",
+    "gray",
+  ]),
 };
 
 export default Button;

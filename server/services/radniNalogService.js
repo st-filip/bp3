@@ -206,6 +206,22 @@ const RadniNalogService = {
       client.release();
     }
   },
+
+  getRadniNalogByBrojRN: async (brojrn) => {
+    const result = await pool.query(
+      `SELECT brojrn, datum, sifraproizvoda, sifrapogona FROM radninalog WHERE brojrn = $1`,
+      [brojrn]
+    );
+    return result.rows[0];
+  },
+
+  getRadniNalogDetaljiByBrojRN: async (brojrn) => {
+    const result = await pool.query(
+      `SELECT brojrn, planiranakol, ostvarenakol, status, voda, vodenapara, elenergija, brojtp, brojts, ukupnosati FROM radninalogdetalji WHERE brojrn = $1`,
+      [brojrn]
+    );
+    return result.rows[0];
+  },
 };
 
 module.exports = RadniNalogService;

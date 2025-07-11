@@ -154,6 +154,30 @@ const RadniNalogController = {
       res.status(500).send(error.message);
     }
   },
+
+  getRadniNalogByBrojRN: async (req, res) => {
+    try {
+      const { brojrn } = req.params;
+      const result = await RadniNalogService.getRadniNalogByBrojRN(brojrn);
+      res.json(result);
+    } catch (err) {
+      console.error(err);
+      res.status(500).send(err.message);
+    }
+  },
+
+  getRadniNalogDetaljiByBrojRN: async (req, res) => {
+    try {
+      const { brojrn } = req.params;
+      const result = await RadniNalogService.getRadniNalogDetaljiByBrojRN(
+        brojrn
+      );
+      res.json(result);
+    } catch (err) {
+      console.error(err);
+      res.status(500).send(err.message);
+    }
+  },
 };
 
 module.exports = RadniNalogController;

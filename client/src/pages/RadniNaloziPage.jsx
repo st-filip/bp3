@@ -48,6 +48,26 @@ const RadniNaloziPage = () => {
     onCancel: null,
   });
 
+  const fetchNalogInfo = async (brojrn) => {
+    try {
+      const osnovniRes = await fetch(
+        `http://localhost:5000/radni-nalog/osnovni-podaci/${brojrn}`
+      );
+      const detaljiRes = await fetch(
+        `http://localhost:5000/radni-nalog/detalji/${brojrn}`
+      );
+      if (!osnovniRes.ok || !detaljiRes.ok) {
+        throw new Error("Greška pri dohvatanju podataka");
+      }
+      const osnovniData = await osnovniRes.json();
+      const detaljiData = await detaljiRes.json();
+      return { osnovni: osnovniData, detalji: detaljiData };
+    } catch (err) {
+      console.error(err);
+      return { osnovni: null, detalji: null };
+    }
+  };
+
   const fetchRadniNalozi = async () => {
     try {
       const response = await fetch("http://localhost:5000/radni-nalog");
@@ -768,6 +788,7 @@ const RadniNaloziPage = () => {
               radniNalog={nalog}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              fetchNalogInfo={fetchNalogInfo}
             />
           ))}
         </div>
