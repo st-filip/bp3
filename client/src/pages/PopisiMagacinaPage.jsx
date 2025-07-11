@@ -27,6 +27,39 @@ const PopisiMagacinaPage = () => {
     onConfirm: null,
     onCancel: null,
   });
+  const [selectedYear, setSelectedYear] = useState("");
+  const [popisiByYear, setPopisiByYear] = useState([]);
+  const [countByYear, setCountByYear] = useState(0);
+
+  const fetchPopisiByYear = async (year) => {
+    try {
+      const response = await fetch(
+        `http://localhost:5000/popisna-lista/godina/${year}`
+      );
+      if (!response.ok) {
+        throw new Error("Greška pri dobijanju popisa za godinu");
+      }
+      const data = await response.json();
+      setPopisiByYear(data);
+    } catch (err) {
+      console.error(err.message);
+      setPopisiByYear([]);
+    }
+  };
+
+  const fetchCountByYear = async (year) => {
+    try {
+      const response = await fetch(
+        `http://localhost:5000/popisna-lista/godina/${year}/count`
+      );
+      if (!response.ok) throw new Error("Greška pri dobijanju broja popisa");
+      const data = await response.json();
+      setCountByYear(data.count);
+    } catch (err) {
+      console.error(err.message);
+      setCountByYear(0);
+    }
+  };
 
   const fetchPopisi = async () => {
     try {
@@ -152,6 +185,8 @@ const PopisiMagacinaPage = () => {
         message: "Popis je uspešno dodat.",
         onConfirm: () => setModalOpen(false),
       });
+      fetchPopisiByYear(selectedYear);
+      fetchCountByYear(selectedYear);
       setModalOpen(true);
     } catch (err) {
       console.error(err.message);
@@ -195,6 +230,8 @@ const PopisiMagacinaPage = () => {
             formatDate(popis.datum) !== formattedDate
         )
       );
+      fetchPopisiByYear(selectedYear);
+      fetchCountByYear(selectedYear);
       setModalData({
         title: "Uspeh",
         message: "Popis je uspešno obrisan.",
@@ -368,37 +405,122 @@ const PopisiMagacinaPage = () => {
       )}
 
       {!isEditing && (
-        <div className="overflow-x-auto shadow-md rounded-xl border border-gray-300">
-          <table className="w-full text-sm text-left text-gray-700">
-            <thead className="bg-gray-100 text-gray-900 uppercase text-xs">
-              <tr>
-                <th className="px-4 py-3 border-b">Magacin</th>
-                <th className="px-4 py-3 border-b">Tip proizvoda</th>
-                <th className="px-4 py-3 border-b">Datum</th>
-                <th className="px-4 py-3 border-b"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {Object.entries(groupedPopisi).map(([key, popisi]) => {
-                const [magacinNaziv, tipProizvoda] = key.split("-");
-                return (
-                  <React.Fragment key={key}>
-                    <tr className="bg-gray-200">
-                      <td className="px-4 py-3 font-bold text-gray-800">
-                        {magacinNaziv}
-                      </td>
-                      <td className="px-4 py-3 font-bold text-gray-800">
-                        {tipProizvoda}
-                      </td>
-                      <td colSpan="2"></td>
+        <>
+          <div className="overflow-x-auto shadow-md rounded-xl border border-gray-300">
+            <table className="w-full text-sm text-left text-gray-700">
+              <thead className="bg-gray-100 text-gray-900 uppercase text-xs">
+                <tr>
+                  <th className="px-4 py-3 border-b">Magacin</th>
+                  <th className="px-4 py-3 border-b">Tip proizvoda</th>
+                  <th className="px-4 py-3 border-b">Datum</th>
+                  <th className="px-4 py-3 border-b"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {Object.entries(groupedPopisi).map(([key, popisi]) => {
+                  const [magacinNaziv, tipProizvoda] = key.split("-");
+                  return (
+                    <React.Fragment key={key}>
+                      <tr className="bg-gray-200">
+                        <td className="px-4 py-3 font-bold text-gray-800">
+                          {magacinNaziv}
+                        </td>
+                        <td className="px-4 py-3 font-bold text-gray-800">
+                          {tipProizvoda}
+                        </td>
+                        <td colSpan="2"></td>
+                      </tr>
+                      {popisi.map((popis, index) => (
+                        <tr
+                          key={`${popis.siframagacina}-${popis.datum}`}
+                          className={
+                            index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                          }
+                        >
+                          <td className="px-4 py-3"></td>
+                          <td className="px-4 py-3"></td>
+                          <td className="px-4 py-3">
+                            {new Date(popis.datum).toLocaleDateString()}
+                          </td>
+                          <td className="px-4 py-3 flex justify-end">
+                            <Button
+                              icon={<FaEdit size={20} />}
+                              onClick={() => handleEdit(popis)}
+                              variant="info"
+                              className="mr-2"
+                            />
+                            <Button
+                              icon={<FaTrash size={20} />}
+                              onClick={() =>
+                                handleDelete(
+                                  popis.magacin.siframagacina,
+                                  popis.datum
+                                )
+                              }
+                              variant="danger"
+                            />
+                          </td>
+                        </tr>
+                      ))}
+                    </React.Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <div className="flex items-center my-4 gap-4">
+            <h1 className="text-2xl font-bold">Popisi za godinu</h1>
+            <Select
+              name="godina"
+              value={selectedYear}
+              onChange={(e) => {
+                const year = e.target.value;
+                setSelectedYear(year);
+                if (year) {
+                  fetchPopisiByYear(year);
+                  fetchCountByYear(year);
+                } else {
+                  setPopisiByYear([]);
+                  setCountByYear(0);
+                }
+              }}
+              option1="godinu"
+              options={[
+                { value: "2024", label: "2024" },
+                { value: "2025", label: "2025" },
+              ]}
+              className="w-40"
+            />
+            {selectedYear && (
+              <span className="text-gray-700 text-sm">
+                Ukupan broj popisa je: <strong>{countByYear}</strong>
+              </span>
+            )}
+          </div>
+          <div className="overflow-x-auto shadow-md rounded-xl border border-gray-300">
+            {selectedYear && (
+              <div className="overflow-x-auto shadow-md rounded-xl border border-gray-300">
+                <table className="w-full text-sm text-left text-gray-700">
+                  <thead className="bg-gray-100 text-gray-900 uppercase text-xs">
+                    <tr>
+                      <th className="px-4 py-3 border-b">Magacin</th>
+                      <th className="px-4 py-3 border-b">Tip proizvoda</th>
+                      <th className="px-4 py-3 border-b">Datum</th>
+                      <th className="px-4 py-3 border-b"></th>
                     </tr>
-                    {popisi.map((popis, index) => (
+                  </thead>
+                  <tbody>
+                    {popisiByYear.map((popis, index) => (
                       <tr
-                        key={`${popis.siframagacina}-${popis.datum}`}
+                        key={`${popis.magacin?.siframagacina}-${popis.datum}`}
                         className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
                       >
-                        <td className="px-4 py-3"></td>
-                        <td className="px-4 py-3"></td>
+                        <td className="px-4 py-3">
+                          {popis.magacin?.nazivmagacina}
+                        </td>
+                        <td className="px-4 py-3">
+                          {popis.magacin?.tipproizvoda?.nazivtp}
+                        </td>
                         <td className="px-4 py-3">
                           {new Date(popis.datum).toLocaleDateString()}
                         </td>
@@ -422,12 +544,19 @@ const PopisiMagacinaPage = () => {
                         </td>
                       </tr>
                     ))}
-                  </React.Fragment>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                    {popisiByYear.length === 0 && (
+                      <tr>
+                        <td colSpan="3" className="px-4 py-3 text-gray-500">
+                          Nema podataka za odabranu godinu.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </>
       )}
 
       {isEditing && (

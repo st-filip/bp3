@@ -89,6 +89,40 @@ const PopisnaListaService = {
       client.release();
     }
   },
+
+  getByGodina: async (godina) => {
+    const tableName = `PopisnaLista_${godina}`;
+
+    const result = await pool.query(
+      `SELECT
+      (SELECT ROW_TO_JSON(tp_object) 
+       FROM (
+         SELECT 
+           m.siframagacina, 
+           m.naziv AS nazivmagacina,
+           (SELECT ROW_TO_JSON(tp) 
+            FROM (
+              SELECT tp.sifratp, tp.naziv AS nazivtp
+              FROM tipproizvoda tp
+              WHERE tp.sifratp = m.sifratp
+            ) tp
+           ) AS tipproizvoda
+         FROM magacin m
+         WHERE m.siframagacina = pl.siframagacina
+       ) tp_object
+      ) AS magacin,
+      pl.datum
+    FROM ${tableName} pl`
+    );
+
+    return result.rows;
+  },
+
+  getCountByGodina: async (godina) => {
+    const tableName = `PopisnaLista_${godina}`;
+    const result = await pool.query(`SELECT COUNT(*) FROM ${tableName}`);
+    return parseInt(result.rows[0].count, 10);
+  },
 };
 
 module.exports = PopisnaListaService;

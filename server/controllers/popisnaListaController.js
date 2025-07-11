@@ -62,6 +62,34 @@ const PopisnaListaController = {
       res.status(500).send(error.message);
     }
   },
+
+  getByGodina: async (req, res) => {
+    try {
+      const { godina } = req.params;
+
+      const popisneListe = await PopisnaListaService.getByGodina(
+        parseInt(godina)
+      );
+
+      res.json(popisneListe);
+    } catch (error) {
+      console.error(error.message);
+      res.status(500).send(error.message);
+    }
+  },
+
+  getCountByGodina: async (req, res) => {
+    try {
+      const { godina } = req.params;
+      const count = await PopisnaListaService.getCountByGodina(
+        parseInt(godina)
+      );
+      res.json({ godina, count });
+    } catch (error) {
+      console.error(error.message);
+      res.status(500).send(error.message);
+    }
+  },
 };
 
 module.exports = PopisnaListaController;
