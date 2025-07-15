@@ -4,21 +4,18 @@ const StavkaPpService = {
   getAll: async () => {
     const result = await pool.query(
       `SELECT 
-        s.brojds,
-        s.rednibroj,
-        s.ostvarenakol,
-        get_vreme_od(s.intervalrada) AS VremeOd, 
-        get_vreme_do(s.intervalrada) AS VremeDo, 
-        s.brojradnika,
-        (
-          SELECT ROW_TO_JSON(posaoproizvodnje)
-          FROM (
-            SELECT sifraposla, naziv
-            FROM posaoproizvodnje
-            WHERE sifraposla = s.sifraposla
-          ) posaoproizvodnje
-        ) AS posaoproizvodnje
-      FROM stavkapp s`
+      s.brojds,
+      s.rednibroj,
+      s.ostvarenakol,
+      get_vreme_od(s.intervalrada) AS VremeOd, 
+      get_vreme_do(s.intervalrada) AS VremeDo, 
+      s.brojradnika,
+      JSON_BUILD_OBJECT(
+        'sifraposla', pp.sifraposla,
+        'naziv', pp.naziv
+      ) AS posaoproizvodnje
+    FROM stavkapp s
+    LEFT JOIN posaoproizvodnje pp ON pp.sifraposla = s.sifraposla`
     );
     return result.rows;
   },
@@ -26,22 +23,19 @@ const StavkaPpService = {
   getById: async (brojds, rednibroj) => {
     const result = await pool.query(
       `SELECT 
-        s.brojds,
-        s.rednibroj,
-        s.ostvarenakol,
-        get_vreme_od(s.intervalrada) AS VremeOd, 
-        get_vreme_do(s.intervalrada) AS VremeDo, 
-        s.brojradnika,
-        (
-          SELECT ROW_TO_JSON(posaoproizvodnje)
-          FROM (
-            SELECT sifraposla, naziv
-            FROM posaoproizvodnje
-            WHERE sifraposla = s.sifraposla
-          ) posaoproizvodnje
-        ) AS posao
-      FROM stavkapp s
-      WHERE s.brojds = $1 AND s.rednibroj = $2`,
+      s.brojds,
+      s.rednibroj,
+      s.ostvarenakol,
+      get_vreme_od(s.intervalrada) AS VremeOd, 
+      get_vreme_do(s.intervalrada) AS VremeDo, 
+      s.brojradnika,
+      JSON_BUILD_OBJECT(
+        'sifraposla', pp.sifraposla,
+        'naziv', pp.naziv
+      ) AS posao
+    FROM stavkapp s
+    LEFT JOIN posaoproizvodnje pp ON pp.sifraposla = s.sifraposla
+    WHERE s.brojds = $1 AND s.rednibroj = $2`,
       [brojds, rednibroj]
     );
     return result.rows[0];
@@ -50,22 +44,19 @@ const StavkaPpService = {
   getByBrojDS: async (brojds) => {
     const result = await pool.query(
       `SELECT 
-        s.brojds,
-        s.rednibroj,
-        s.ostvarenakol,
-        get_vreme_od(s.intervalrada) AS VremeOd, 
-        get_vreme_do(s.intervalrada) AS VremeDo, 
-        s.brojradnika,
-        (
-          SELECT ROW_TO_JSON(posaoproizvodnje)
-          FROM (
-            SELECT sifraposla, naziv
-            FROM posaoproizvodnje
-            WHERE sifraposla = s.sifraposla
-          ) posaoproizvodnje
-        ) AS posao
-      FROM stavkapp s
-      WHERE s.brojds = $1`,
+      s.brojds,
+      s.rednibroj,
+      s.ostvarenakol,
+      get_vreme_od(s.intervalrada) AS VremeOd, 
+      get_vreme_do(s.intervalrada) AS VremeDo, 
+      s.brojradnika,
+      JSON_BUILD_OBJECT(
+        'sifraposla', pp.sifraposla,
+        'naziv', pp.naziv
+      ) AS posao
+    FROM stavkapp s
+    LEFT JOIN posaoproizvodnje pp ON pp.sifraposla = s.sifraposla
+    WHERE s.brojds = $1`,
       [brojds]
     );
     return result.rows;

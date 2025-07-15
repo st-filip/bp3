@@ -12,24 +12,18 @@ const PopisnaListaService = {
   getAll: async () => {
     const result = await pool.query(
       `SELECT
-        (SELECT ROW_TO_JSON(tp_object) 
-         FROM (
-           SELECT 
-             m.siframagacina, 
-             m.naziv AS nazivmagacina,
-             (SELECT ROW_TO_JSON(tp) 
-              FROM (
-                SELECT tp.sifratp, tp.naziv AS nazivtp
-                FROM tipproizvoda tp
-                WHERE tp.sifratp = m.sifratp
-              ) tp
-             ) AS tipproizvoda
-           FROM magacin m
-           WHERE m.siframagacina = pl.siframagacina
-         ) tp_object
-        ) AS magacin,
-        pl.datum
-      FROM popisnalista pl`
+      JSON_BUILD_OBJECT(
+        'siframagacina', m.siframagacina,
+        'nazivmagacina', m.naziv,
+        'tipproizvoda', JSON_BUILD_OBJECT(
+          'sifratp', tp.sifratp,
+          'nazivtp', tp.naziv
+        )
+      ) AS magacin,
+      pl.datum
+    FROM popisnalista pl
+    LEFT JOIN magacin m ON m.siframagacina = pl.siframagacina
+    LEFT JOIN tipproizvoda tp ON tp.sifratp = m.sifratp`
     );
     return result.rows;
   },
@@ -37,25 +31,19 @@ const PopisnaListaService = {
   getById: async (siframagacina, datum) => {
     const result = await pool.query(
       `SELECT
-        (SELECT ROW_TO_JSON(tp_object) 
-         FROM (
-           SELECT 
-             m.siframagacina, 
-             m.naziv AS nazivmagacina,
-             (SELECT ROW_TO_JSON(tp) 
-              FROM (
-                SELECT tp.sifratp, tp.naziv AS nazivtp
-                FROM tipproizvoda tp
-                WHERE tp.sifratp = m.sifratp
-              ) tp
-             ) AS tipproizvoda
-           FROM magacin m
-           WHERE m.siframagacina = pl.siframagacina
-         ) tp_object
-        ) AS magacin,
-        pl.datum
-      FROM popisnalista pl
-      WHERE pl.siframagacina = $1 AND pl.datum = $2`,
+      JSON_BUILD_OBJECT(
+        'siframagacina', m.siframagacina,
+        'nazivmagacina', m.naziv,
+        'tipproizvoda', JSON_BUILD_OBJECT(
+          'sifratp', tp.sifratp,
+          'nazivtp', tp.naziv
+        )
+      ) AS magacin,
+      pl.datum
+    FROM popisnalista pl
+    LEFT JOIN magacin m ON m.siframagacina = pl.siframagacina
+    LEFT JOIN tipproizvoda tp ON tp.sifratp = m.sifratp
+    WHERE pl.siframagacina = $1 AND pl.datum = $2`,
       [siframagacina, datum]
     );
     return result.rows[0];
@@ -95,24 +83,18 @@ const PopisnaListaService = {
 
     const result = await pool.query(
       `SELECT
-      (SELECT ROW_TO_JSON(tp_object) 
-       FROM (
-         SELECT 
-           m.siframagacina, 
-           m.naziv AS nazivmagacina,
-           (SELECT ROW_TO_JSON(tp) 
-            FROM (
-              SELECT tp.sifratp, tp.naziv AS nazivtp
-              FROM tipproizvoda tp
-              WHERE tp.sifratp = m.sifratp
-            ) tp
-           ) AS tipproizvoda
-         FROM magacin m
-         WHERE m.siframagacina = pl.siframagacina
-       ) tp_object
+      JSON_BUILD_OBJECT(
+        'siframagacina', m.siframagacina,
+        'nazivmagacina', m.naziv,
+        'tipproizvoda', JSON_BUILD_OBJECT(
+          'sifratp', tp.sifratp,
+          'nazivtp', tp.naziv
+        )
       ) AS magacin,
       pl.datum
-    FROM ${tableName} pl`
+    FROM ${tableName} pl
+    LEFT JOIN magacin m ON m.siframagacina = pl.siframagacina
+    LEFT JOIN tipproizvoda tp ON tp.sifratp = m.sifratp`
     );
 
     return result.rows;

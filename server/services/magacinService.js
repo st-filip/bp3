@@ -4,15 +4,14 @@ const MagacinService = {
   getAll: async () => {
     const result = await pool.query(
       `SELECT 
-        m.siframagacina, 
-        m.naziv, 
-        (SELECT ROW_TO_JSON(tp_object) 
-         FROM (
-           SELECT sifratp, naziv AS nazivtp 
-           FROM tipproizvoda 
-           WHERE sifratp = m.sifratp
-         ) tp_object) AS tipproizvoda
-       FROM magacin m`
+      m.siframagacina, 
+      m.naziv, 
+      JSON_BUILD_OBJECT(
+        'sifratp', tp.sifratp,
+        'nazivtp', tp.naziv
+      ) AS tipproizvoda
+    FROM magacin m
+    LEFT JOIN tipproizvoda tp ON tp.sifratp = m.sifratp`
     );
     return result.rows;
   },

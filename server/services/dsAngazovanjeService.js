@@ -4,17 +4,20 @@ const DsAngazovanjeService = {
   getAll: async () => {
     const result = await pool.query(
       `SELECT 
-        ds.brojds, 
-        ds.jmbg,
-        ds.napomena,
-        ds.imeprezime,
-        (SELECT ROW_TO_JSON(uloga) 
-         FROM (SELECT sifrauloge, naziv AS nazivuloge FROM uloga WHERE sifrauloge = ds.sifrauloge) uloga) AS uloga,
-         (SELECT ROW_TO_JSON(zaposleni) 
-        FROM (SELECT jmbg 
-                FROM zaposleni 
-                WHERE jmbg = ds.jmbg) zaposleni) AS zaposleni
-       FROM dsangazovanje ds`
+      ds.brojds, 
+      ds.jmbg,
+      ds.napomena,
+      ds.imeprezime,
+      JSON_BUILD_OBJECT(
+        'sifrauloge', u.sifrauloge,
+        'nazivuloge', u.naziv
+      ) AS uloga,
+      JSON_BUILD_OBJECT(
+        'jmbg', z.jmbg
+      ) AS zaposleni
+    FROM dsangazovanje ds
+    LEFT JOIN uloga u ON u.sifrauloge = ds.sifrauloge
+    LEFT JOIN zaposleni z ON z.jmbg = ds.jmbg`
     );
     return result.rows;
   },
@@ -22,18 +25,21 @@ const DsAngazovanjeService = {
   getAllForDS: async (brojds) => {
     const result = await pool.query(
       `SELECT 
-        ds.brojds, 
-        ds.jmbg,
-        ds.napomena,
-        ds.imeprezime,
-        (SELECT ROW_TO_JSON(uloga) 
-         FROM (SELECT sifrauloge, naziv AS nazivuloge FROM uloga WHERE sifrauloge = ds.sifrauloge) uloga) AS uloga,
-          (SELECT ROW_TO_JSON(zaposleni) 
-        FROM (SELECT jmbg 
-                FROM zaposleni 
-                WHERE jmbg = ds.jmbg) zaposleni) AS zaposleni
-       FROM dsangazovanje ds
-        WHERE ds.brojds=$1`,
+      ds.brojds, 
+      ds.jmbg,
+      ds.napomena,
+      ds.imeprezime,
+      JSON_BUILD_OBJECT(
+        'sifrauloge', u.sifrauloge,
+        'nazivuloge', u.naziv
+      ) AS uloga,
+      JSON_BUILD_OBJECT(
+        'jmbg', z.jmbg
+      ) AS zaposleni
+    FROM dsangazovanje ds
+    LEFT JOIN uloga u ON u.sifrauloge = ds.sifrauloge
+    LEFT JOIN zaposleni z ON z.jmbg = ds.jmbg
+    WHERE ds.brojds = $1`,
       [brojds]
     );
     return result.rows;
@@ -42,18 +48,21 @@ const DsAngazovanjeService = {
   getById: async (brojds, jmbg, sifrauloge) => {
     const result = await pool.query(
       `SELECT 
-        ds.brojds, 
-        ds.jmbg,
-        ds.napomena,
-        ds.imeprezime,
-        (SELECT ROW_TO_JSON(uloga) 
-         FROM (SELECT sifrauloge, naziv AS nazivuloge FROM uloga WHERE sifrauloge = ds.sifrauloge) uloga) AS uloga,
-          (SELECT ROW_TO_JSON(zaposleni) 
-        FROM (SELECT jmbg 
-                FROM zaposleni 
-                WHERE jmbg = ds.jmbg) zaposleni) AS zaposleni
-       FROM dsangazovanje ds
-        WHERE ds.brojds = $1 and jmbg = $2 and sifrauloge = $3`,
+      ds.brojds, 
+      ds.jmbg,
+      ds.napomena,
+      ds.imeprezime,
+      JSON_BUILD_OBJECT(
+        'sifrauloge', u.sifrauloge,
+        'nazivuloge', u.naziv
+      ) AS uloga,
+      JSON_BUILD_OBJECT(
+        'jmbg', z.jmbg
+      ) AS zaposleni
+    FROM dsangazovanje ds
+    LEFT JOIN uloga u ON u.sifrauloge = ds.sifrauloge
+    LEFT JOIN zaposleni z ON z.jmbg = ds.jmbg
+    WHERE ds.brojds = $1 AND ds.jmbg = $2 AND ds.sifrauloge = $3`,
       [brojds, jmbg, sifrauloge]
     );
     return result.rows[0];

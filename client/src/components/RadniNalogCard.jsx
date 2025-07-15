@@ -62,7 +62,6 @@ const RadniNalogCard = ({ radniNalog, onEdit, onDelete, fetchNalogInfo }) => {
         cancelText="Zatvori"
       >
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* Osnovni podaci */}
           <div className="col-span-1 bg-gray-100 rounded-lg p-4 shadow-sm">
             <h4 className="text-lg font-semibold mb-4 border-b pb-2">
               Osnovni podaci

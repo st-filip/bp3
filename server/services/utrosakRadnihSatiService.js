@@ -4,24 +4,19 @@ const UtrosakRadnihSatiService = {
   getAll: async () => {
     const result = await pool.query(
       `SELECT
-        urs.kolicina, urs.brojds,
-        (SELECT ROW_TO_JSON(z_obj)
-         FROM (
-           SELECT z.jmbg, z.imeprezime
-           FROM zaposleni z
-           WHERE z.jmbg = urs.jmbg
-         ) z_obj
-        ) AS zaposleni,
-        (SELECT ROW_TO_JSON(trs_obj)
-         FROM (
-           SELECT trs.sifratrs, trs.naziv
-           FROM tipradnihsati trs
-           WHERE trs.sifratrs = urs.sifratrs
-         ) trs_obj
-        ) AS tipradnihsati
-      FROM utrosakradnihsati urs`
+      urs.kolicina, urs.brojds,
+      JSON_BUILD_OBJECT(
+        'jmbg', z.jmbg,
+        'imeprezime', z.imeprezime
+      ) AS zaposleni,
+      JSON_BUILD_OBJECT(
+        'sifratrs', trs.sifratrs,
+        'naziv', trs.naziv
+      ) AS tipradnihsati
+    FROM utrosakradnihsati urs
+    LEFT JOIN zaposleni z ON z.jmbg = urs.jmbg
+    LEFT JOIN tipradnihsati trs ON trs.sifratrs = urs.sifratrs`
     );
-
     return result.rows;
   },
 
@@ -29,28 +24,20 @@ const UtrosakRadnihSatiService = {
     const result = await pool.query(
       `SELECT
       urs.kolicina, urs.brojds,
-        (SELECT ROW_TO_JSON(z_obj)
-         FROM (
-           SELECT z.jmbg, z.imeprezime
-           FROM zaposleni z
-           WHERE z.jmbg = urs.jmbg
-         ) z_obj
-        ) AS zaposleni,
-
-        (SELECT ROW_TO_JSON(trs_obj)
-         FROM (
-           SELECT trs.sifratrs, trs.naziv
-           FROM tipradnihsati trs
-           WHERE trs.sifratrs = urs.sifratrs
-         ) trs_obj
-        ) AS tipradnihsati
-
-      FROM utrosakradnihsati urs
-      WHERE urs.brojds = $1 AND urs.jmbg = $2 AND urs.sifratrs = $3
-    `,
+      JSON_BUILD_OBJECT(
+        'jmbg', z.jmbg,
+        'imeprezime', z.imeprezime
+      ) AS zaposleni,
+      JSON_BUILD_OBJECT(
+        'sifratrs', trs.sifratrs,
+        'naziv', trs.naziv
+      ) AS tipradnihsati
+    FROM utrosakradnihsati urs
+    LEFT JOIN zaposleni z ON z.jmbg = urs.jmbg
+    LEFT JOIN tipradnihsati trs ON trs.sifratrs = urs.sifratrs
+    WHERE urs.brojds = $1 AND urs.jmbg = $2 AND urs.sifratrs = $3`,
       [brojds, jmbg, sifratrs]
     );
-
     return result.rows[0];
   },
 
@@ -58,25 +45,20 @@ const UtrosakRadnihSatiService = {
     const result = await pool.query(
       `SELECT
       urs.kolicina, urs.brojds,
-      (SELECT ROW_TO_JSON(z_obj)
-       FROM (
-         SELECT z.jmbg, z.imeprezime
-         FROM zaposleni z
-         WHERE z.jmbg = urs.jmbg
-       ) z_obj
+      JSON_BUILD_OBJECT(
+        'jmbg', z.jmbg,
+        'imeprezime', z.imeprezime
       ) AS zaposleni,
-      (SELECT ROW_TO_JSON(trs_obj)
-       FROM (
-         SELECT trs.sifratrs, trs.naziv
-         FROM tipradnihsati trs
-         WHERE trs.sifratrs = urs.sifratrs
-       ) trs_obj
+      JSON_BUILD_OBJECT(
+        'sifratrs', trs.sifratrs,
+        'naziv', trs.naziv
       ) AS tipradnihsati
     FROM utrosakradnihsati urs
+    LEFT JOIN zaposleni z ON z.jmbg = urs.jmbg
+    LEFT JOIN tipradnihsati trs ON trs.sifratrs = urs.sifratrs
     WHERE urs.brojds = $1`,
       [brojds]
     );
-
     return result.rows;
   },
 

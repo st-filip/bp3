@@ -12,22 +12,20 @@ const ProivodService = {
   getAll: async () => {
     const result = await pool.query(
       `SELECT 
-        p.sifraproizvoda, 
-        p.naziv,
-        (SELECT ROW_TO_JSON(jm_object) 
-        FROM (
-          SELECT sifrajm, naziv AS nazivjm 
-          FROM jedinicamere 
-          WHERE sifrajm = p.sifrajm
-        ) jm_object) AS jedinicamere,
-        (SELECT ROW_TO_JSON(tp_object) 
-        FROM (
-          SELECT sifratp, naziv AS nazivtp 
-          FROM tipproizvoda 
-          WHERE sifratp = p.sifratp
-        ) tp_object) AS tipproizvoda
-      FROM proizvod p
-      WHERE p.naziv NOT ILIKE 'Proizvod%'`
+      p.sifraproizvoda, 
+      p.naziv,
+      JSON_BUILD_OBJECT(
+        'sifrajm', jm.sifrajm,
+        'nazivjm', jm.naziv
+      ) AS jedinicamere,
+      JSON_BUILD_OBJECT(
+        'sifratp', tp.sifratp,
+        'nazivtp', tp.naziv
+      ) AS tipproizvoda
+    FROM proizvod p
+    LEFT JOIN jedinicamere jm ON jm.sifrajm = p.sifrajm
+    LEFT JOIN tipproizvoda tp ON tp.sifratp = p.sifratp
+    WHERE p.naziv NOT ILIKE 'Proizvod%'`
     );
     return result.rows;
   },
@@ -35,22 +33,20 @@ const ProivodService = {
   getById: async (sifraproizvoda) => {
     const result = await pool.query(
       `SELECT 
-        p.sifraproizvoda, 
-        p.naziv,
-        (SELECT ROW_TO_JSON(jm_object) 
-         FROM (
-           SELECT sifrajm, naziv AS nazivjm 
-           FROM jedinicamere 
-           WHERE sifrajm = p.sifrajm
-         ) jm_object) AS jedinicamere,
-        (SELECT ROW_TO_JSON(tp_object) 
-         FROM (
-           SELECT sifratp, naziv AS nazivtp 
-           FROM tipproizvoda 
-           WHERE sifratp = p.sifratp
-         ) tp_object) AS tipproizvoda
-      FROM proizvod p
-      WHERE sifraproizvoda = $1`,
+      p.sifraproizvoda, 
+      p.naziv,
+      JSON_BUILD_OBJECT(
+        'sifrajm', jm.sifrajm,
+        'nazivjm', jm.naziv
+      ) AS jedinicamere,
+      JSON_BUILD_OBJECT(
+        'sifratp', tp.sifratp,
+        'nazivtp', tp.naziv
+      ) AS tipproizvoda
+    FROM proizvod p
+    LEFT JOIN jedinicamere jm ON jm.sifrajm = p.sifrajm
+    LEFT JOIN tipproizvoda tp ON tp.sifratp = p.sifratp
+    WHERE p.sifraproizvoda = $1`,
       [sifraproizvoda]
     );
     return result.rows[0];
@@ -72,22 +68,20 @@ const ProivodService = {
   getByType: async (sifratp) => {
     const result = await pool.query(
       `SELECT 
-        p.sifraproizvoda, 
-        p.naziv,
-        (SELECT ROW_TO_JSON(jm_object) 
-         FROM (
-           SELECT sifrajm, naziv AS nazivjm 
-           FROM jedinicamere 
-           WHERE sifrajm = p.sifrajm
-         ) jm_object) AS jedinicamere,
-        (SELECT ROW_TO_JSON(tp_object) 
-         FROM (
-           SELECT sifratp, naziv AS nazivtp 
-           FROM tipproizvoda 
-           WHERE sifratp = p.sifratp
-         ) tp_object) AS tipproizvoda
-      FROM proizvod p
-      WHERE p.sifratp = $1 and p.naziv NOT ILIKE 'Proizvod%'`,
+      p.sifraproizvoda, 
+      p.naziv,
+      JSON_BUILD_OBJECT(
+        'sifrajm', jm.sifrajm,
+        'nazivjm', jm.naziv
+      ) AS jedinicamere,
+      JSON_BUILD_OBJECT(
+        'sifratp', tp.sifratp,
+        'nazivtp', tp.naziv
+      ) AS tipproizvoda
+    FROM proizvod p
+    LEFT JOIN jedinicamere jm ON jm.sifrajm = p.sifrajm
+    LEFT JOIN tipproizvoda tp ON tp.sifratp = p.sifratp
+    WHERE p.sifratp = $1 AND p.naziv NOT ILIKE 'Proizvod%'`,
       [sifratp]
     );
     return result.rows;
@@ -115,20 +109,17 @@ const ProivodService = {
       `SELECT 
       p.sifraproizvoda, 
       p.naziv,
-      (SELECT ROW_TO_JSON(jm_object) 
-       FROM (
-         SELECT sifrajm, naziv AS nazivjm 
-         FROM jedinicamere 
-         WHERE sifrajm = p.sifrajm
-       ) jm_object) AS jedinicamere,
-      (SELECT ROW_TO_JSON(tp_object) 
-       FROM (
-         SELECT sifratp, naziv AS nazivtp 
-         FROM tipproizvoda 
-         WHERE sifratp = p.sifratp
-       ) tp_object) AS tipproizvoda
+      JSON_BUILD_OBJECT(
+        'sifrajm', jm.sifrajm,
+        'nazivjm', jm.naziv
+      ) AS jedinicamere,
+      JSON_BUILD_OBJECT(
+        'sifratp', tp.sifratp,
+        'nazivtp', tp.naziv
+      ) AS tipproizvoda
     FROM proizvod p
-    JOIN jedinicamere jm ON jm.sifrajm = p.sifrajm
+    LEFT JOIN jedinicamere jm ON jm.sifrajm = p.sifrajm
+    LEFT JOIN tipproizvoda tp ON tp.sifratp = p.sifratp
     ${whereClause}`,
       values
     );

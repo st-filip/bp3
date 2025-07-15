@@ -12,16 +12,15 @@ const DnevnikSmeneService = {
   getAll: async () => {
     const result = await pool.query(
       `SELECT 
-        ds.brojds,
-        ds.datum,
-        ds.brojrn,
-        (SELECT ROW_TO_JSON(pg_object) 
-         FROM (
-           SELECT sifrapogona, naziv AS naziv_pogona 
-           FROM proizvodnipogon 
-           WHERE sifrapogona = ds.sifrapogona
-         ) pg_object) AS proizvodnipogon
-      FROM dnevnikSmene ds`
+      ds.brojds,
+      ds.datum,
+      ds.brojrn,
+      JSON_BUILD_OBJECT(
+        'sifrapogona', pg.sifrapogona,
+        'naziv_pogona', pg.naziv
+      ) AS proizvodnipogon
+    FROM dnevnikSmene ds
+    LEFT JOIN proizvodnipogon pg ON pg.sifrapogona = ds.sifrapogona`
     );
     return result.rows;
   },
@@ -29,17 +28,16 @@ const DnevnikSmeneService = {
   getById: async (brojds) => {
     const result = await pool.query(
       `SELECT 
-        ds.brojds,
-        ds.datum,
-        ds.brojrn,
-        (SELECT ROW_TO_JSON(pg_object) 
-         FROM (
-           SELECT sifrapogona, naziv AS naziv_pogona 
-           FROM proizvodnipogon 
-           WHERE sifrapogona = ds.sifrapogona
-         ) pg_object) AS proizvodnipogon
-      FROM dnevnikSmene ds
-      WHERE ds.brojds = $1`,
+      ds.brojds,
+      ds.datum,
+      ds.brojrn,
+      JSON_BUILD_OBJECT(
+        'sifrapogona', pg.sifrapogona,
+        'naziv_pogona', pg.naziv
+      ) AS proizvodnipogon
+    FROM dnevnikSmene ds
+    LEFT JOIN proizvodnipogon pg ON pg.sifrapogona = ds.sifrapogona
+    WHERE ds.brojds = $1`,
       [brojds]
     );
     return result.rows[0];

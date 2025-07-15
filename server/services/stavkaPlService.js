@@ -4,13 +4,16 @@ const StavkaPlService = {
   getAll: async () => {
     const result = await pool.query(
       `SELECT 
-        sp.siframagacina, 
-        sp.datum, 
-        sp.rednibroj, 
-        sp.kolicina,
-        (SELECT ROW_TO_JSON(proizvod_object) 
-         FROM (SELECT sifraproizvoda, naziv FROM proizvod WHERE sifraproizvoda = sp.sifraproizvoda) proizvod_object) AS proizvod
-      FROM stavkapl sp`
+      sp.siframagacina, 
+      sp.datum, 
+      sp.rednibroj, 
+      sp.kolicina,
+      JSON_BUILD_OBJECT(
+        'sifraproizvoda', p.sifraproizvoda,
+        'naziv', p.naziv
+      ) AS proizvod
+    FROM stavkapl sp
+    LEFT JOIN proizvod p ON p.sifraproizvoda = sp.sifraproizvoda`
     );
     return result.rows;
   },
@@ -18,14 +21,17 @@ const StavkaPlService = {
   getStavkeByDatumAndMagacin: async (siframagacina, datum) => {
     const result = await pool.query(
       `SELECT 
-        sp.siframagacina, 
-        sp.datum, 
-        sp.rednibroj, 
-        sp.kolicina,
-        (SELECT ROW_TO_JSON(proizvod_object) 
-         FROM (SELECT sifraproizvoda, naziv FROM proizvod WHERE sifraproizvoda = sp.sifraproizvoda) proizvod_object) AS proizvod
-         FROM stavkapl sp
-         WHERE siframagacina = $1 AND datum = $2`,
+      sp.siframagacina, 
+      sp.datum, 
+      sp.rednibroj, 
+      sp.kolicina,
+      JSON_BUILD_OBJECT(
+        'sifraproizvoda', p.sifraproizvoda,
+        'naziv', p.naziv
+      ) AS proizvod
+    FROM stavkapl sp
+    LEFT JOIN proizvod p ON p.sifraproizvoda = sp.sifraproizvoda
+    WHERE sp.siframagacina = $1 AND sp.datum = $2`,
       [siframagacina, datum]
     );
     return result.rows;
@@ -34,14 +40,17 @@ const StavkaPlService = {
   getById: async (siframagacina, datum, rednibroj) => {
     const result = await pool.query(
       `SELECT 
-        sp.siframagacina, 
-        sp.datum, 
-        sp.rednibroj, 
-        sp.kolicina,
-        (SELECT ROW_TO_JSON(proizvod_object) 
-         FROM (SELECT sifraproizvoda, naziv FROM proizvod WHERE sifraproizvoda = sp.sifraproizvoda) proizvod_object) AS proizvod
-         FROM stavkapl sp
-         WHERE siframagacina = $1 AND datum = $2 AND rednibroj = $3`,
+      sp.siframagacina, 
+      sp.datum, 
+      sp.rednibroj, 
+      sp.kolicina,
+      JSON_BUILD_OBJECT(
+        'sifraproizvoda', p.sifraproizvoda,
+        'naziv', p.naziv
+      ) AS proizvod
+    FROM stavkapl sp
+    LEFT JOIN proizvod p ON p.sifraproizvoda = sp.sifraproizvoda
+    WHERE sp.siframagacina = $1 AND sp.datum = $2 AND sp.rednibroj = $3`,
       [siframagacina, datum, rednibroj]
     );
     return result.rows[0];

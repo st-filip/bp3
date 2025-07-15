@@ -5,14 +5,18 @@ const RnAngazovanjeService = {
   getAll: async () => {
     const result = await pool.query(
       `SELECT 
-        rn.brojrn, 
-        (SELECT ROW_TO_JSON(uloga) 
-         FROM (SELECT sifrauloge, naziv AS nazivuloge FROM uloga WHERE sifrauloge = rn.sifrauloge) uloga) AS uloga,
-        (SELECT ROW_TO_JSON(zaposleni) 
-        FROM (SELECT jmbg, imeprezime 
-                FROM zaposleni 
-                WHERE jmbg = rn.jmbg) zaposleni) AS zaposleni
-        FROM rnangazovanje rn`
+      rn.brojrn, 
+      JSON_BUILD_OBJECT(
+        'sifrauloge', u.sifrauloge,
+        'nazivuloge', u.naziv
+      ) AS uloga,
+      JSON_BUILD_OBJECT(
+        'jmbg', z.jmbg,
+        'imeprezime', z.imeprezime
+      ) AS zaposleni
+    FROM rnangazovanje rn
+    LEFT JOIN uloga u ON u.sifrauloge = rn.sifrauloge
+    LEFT JOIN zaposleni z ON z.jmbg = rn.jmbg`
     );
     return result.rows;
   },
@@ -20,15 +24,19 @@ const RnAngazovanjeService = {
   getAllForRN: async (brojrn) => {
     const result = await pool.query(
       `SELECT 
-        rn.brojrn, 
-        (SELECT ROW_TO_JSON(uloga) 
-         FROM (SELECT sifrauloge, naziv AS nazivuloge FROM uloga WHERE sifrauloge = rn.sifrauloge) uloga) AS uloga,
-        (SELECT ROW_TO_JSON(zaposleni) 
-        FROM (SELECT jmbg, imeprezime 
-                FROM zaposleni 
-                WHERE jmbg = rn.jmbg) zaposleni) AS zaposleni
-        FROM rnangazovanje rn
-        WHERE rn.brojrn=$1`,
+      rn.brojrn, 
+      JSON_BUILD_OBJECT(
+        'sifrauloge', u.sifrauloge,
+        'nazivuloge', u.naziv
+      ) AS uloga,
+      JSON_BUILD_OBJECT(
+        'jmbg', z.jmbg,
+        'imeprezime', z.imeprezime
+      ) AS zaposleni
+    FROM rnangazovanje rn
+    LEFT JOIN uloga u ON u.sifrauloge = rn.sifrauloge
+    LEFT JOIN zaposleni z ON z.jmbg = rn.jmbg
+    WHERE rn.brojrn = $1`,
       [brojrn]
     );
     return result.rows;
@@ -37,15 +45,19 @@ const RnAngazovanjeService = {
   getById: async (brojrn, jmbg, sifrauloge) => {
     const result = await pool.query(
       `SELECT 
-        rn.brojrn, 
-        (SELECT ROW_TO_JSON(uloga) 
-         FROM (SELECT sifrauloge, naziv AS nazivuloge FROM uloga WHERE sifrauloge = rn.sifrauloge) uloga) AS uloga,
-        (SELECT ROW_TO_JSON(zaposleni) 
-        FROM (SELECT jmbg, imeprezime 
-                FROM zaposleni 
-                WHERE jmbg = rn.jmbg) zaposleni) AS zaposleni
-        FROM rnangazovanje rn
-        WHERE rn.brojrn = $1 and jmbg = $2 and sifrauloge = $3`,
+      rn.brojrn, 
+      JSON_BUILD_OBJECT(
+        'sifrauloge', u.sifrauloge,
+        'nazivuloge', u.naziv
+      ) AS uloga,
+      JSON_BUILD_OBJECT(
+        'jmbg', z.jmbg,
+        'imeprezime', z.imeprezime
+      ) AS zaposleni
+    FROM rnangazovanje rn
+    LEFT JOIN uloga u ON u.sifrauloge = rn.sifrauloge
+    LEFT JOIN zaposleni z ON z.jmbg = rn.jmbg
+    WHERE rn.brojrn = $1 AND z.jmbg = $2 AND u.sifrauloge = $3`,
       [brojrn, jmbg, sifrauloge]
     );
     return result.rows[0];
